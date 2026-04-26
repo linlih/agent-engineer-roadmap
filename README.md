@@ -87,7 +87,16 @@
 - GraphRAG、DSPy、Dify、Browser Agent、LoRA、vLLM、K8s、MCP Server 都属于“进阶选修”。
 - 这些内容很有价值，但不应阻塞主线进度。做不完时，允许先做最小可运行版本，再在项目阶段回补。
 
-### C. 每周顺延规则
+### C. 核心知识 vs 工具类
+
+- **核心知识**：LLM API 工程化、Tool Use、工作流状态管理、RAG、上下文工程、Evals、服务化、安全治理。
+- **工具类**：Ollama、vLLM、Dify、Langfuse、browser-use、MCP Server、Milvus、K8s 这类具体产品或基础设施。
+- 学核心知识时要理解“为什么这样设计、有哪些 trade-off、失败点在哪里”。
+- 学工具类时只要求达到“会安装、会接入、会排错、知道适用边界”，不要花大量时间研究产品细节。
+- 如果某个工具不影响主线闭环，就不要让它占用本周主要时间。
+- 文档里出现这些工具名时，应默认理解为“可替换示例”，不是必须绑定的唯一技术栈。
+
+### D. 每周顺延规则
 
 - 某周若未完成核心交付标准，不必死卡所有扩展实验，但至少要保证“主线最小成果”达标后再进下一周。
 - 建议为每周定义两个结果：`Minimum`（必须完成）和 `Stretch`（做完更好）。下面各周如未显式写出，可按该原则自行裁剪。
@@ -109,7 +118,8 @@
 ### 默认降级为次优先级的内容
 
 - Tree of Thoughts、GraphRAG、DSPy、MCP Server、Browser Agent、LoRA、K8s、vLLM 都是重要能力，但对“后端转 Agent”的前四周和前八周不是最短路径。
-- 这些内容保留在文档中，但默认都按“进阶选修”理解，除非你的目标岗位明确要求。
+- 这些内容保留在文档中，但默认都按“进阶选修”或“按需会用”理解，除非你的目标岗位明确要求。
+- Ollama、Dify、Langfuse、Milvus 这类工具更不应被当成“知识点”去学透，够用即可。
 
 ### 16 周主线判断标准
 
@@ -135,17 +145,23 @@
 
 ### 国内开源模型生态（贯穿全程并行）
 
-> 从 Week 1 起就同步用国内模型做每个实践，不能等到后期再补。
+> 不建议把国内模型生态全部并行深学。**这份 roadmap 只建议 1 主线 + 1 对照 + 若干了解项。**
 
-| 模型/平台 | 厂商 | 学习重点 |
-|----------|------|---------|
-| [Qwen2.5 / Qwen-VL / Qwen-Audio](https://github.com/QwenLM/Qwen2.5) | 阿里 | 通用+多模态，Tool Use 能力强，国内做 Agent 首选基础模型 |
-| [Qwen-Agent](https://github.com/QwenLM/Qwen-Agent) | 阿里 | 官方 Agent 框架，Function Call / RAG / Code Interpreter |
-| [DeepSeek-V3 / DeepSeek-R1](https://github.com/deepseek-ai/DeepSeek-V3) | DeepSeek | R1 推理模型对标 o1；V3 综合能力强，API 价格低 |
-| [ChatGLM / GLM-4](https://github.com/THUDM/GLM-4) | 智谱AI | 了解 Function Call 格式差异 |
-| [文心大模型 4.0](https://cloud.baidu.com/doc/WENXINWORKSHOP/index.html) | 百度 | 百度系 Agent 开发必用 |
-| [Ollama](https://github.com/ollama/ollama) | 开源 | 本地运行开源模型，私有化场景标配 |
-| [vLLM](https://github.com/vllm-project/vllm) | 开源 | 生产级推理服务，企业私有化部署主流方案 |
+**推荐组合：**
+- 主线用 `Qwen / DashScope`
+- 对照用 `DeepSeek`
+- `GLM / 文心` 了解接口差异即可
+- `Ollama / vLLM` 不算模型学习主线，放到后面的服务化阶段按需使用
+
+| 角色 | 模型/平台 | 用法 |
+|------|----------|------|
+| 主线模型 | [Qwen2.5 / Qwen-VL / Qwen-Audio](https://github.com/QwenLM/Qwen2.5) | 贯穿大部分实验，作为默认模型生态 |
+| 对照模型 | [DeepSeek-V3 / DeepSeek-R1](https://github.com/deepseek-ai/DeepSeek-V3) | 少量横评，理解推理/成本/延迟取舍 |
+| 了解即可 | [ChatGLM / GLM-4](https://github.com/THUDM/GLM-4) / [文心大模型 4.0](https://cloud.baidu.com/doc/WENXINWORKSHOP/index.html) | 只看 API 形态、Function Call 差异、适用场景 |
+
+> 说明：
+>- `Ollama` 的学习成本很低，核心就是安装、拉模型、暴露兼容接口，知道怎么用于本地原型验证就够了。
+>- `vLLM` 也不该放在前期模型选型里学，它属于 Phase 3 的部署与推理服务主题。
 
 ---
 
@@ -160,7 +176,7 @@
 
 **本周建议拆分：**
 - `Minimum`：打通 2 家模型 API + 结构化输出 + Pydantic 校验 + 超时/重试/日志
-- `Stretch`：做 3 家模型横评 + 本地 Ollama 对照实验
+- `Stretch`：做 3 家模型横评；需要本地模型时再用 Ollama 做对照
 
 **知识点：**
 - 主流 API 接入：OpenAI / Anthropic / DashScope（Qwen）/ DeepSeek / 文心 的 Chat Completion 格式；`role` 字段含义（system/user/assistant/tool）
@@ -303,7 +319,7 @@
 
 **本周建议拆分：**
 - `Minimum`：先把 parse → chunk → index → retrieve → answer → eval 的单条链路打通
-- `Stretch`：多 embedding、多检索策略横评；Milvus 对比实验
+- `Stretch`：多 embedding、多检索策略横评；Milvus 只做产品认知级对比
 
 **知识点：**
 - **文档解析**：程序型 PDF（`PyMuPDF`/`pdfplumber`）/ 扫描型（`pdf2image` → `PaddleOCR`）/ HTML（`trafilatura`）/ Word（`python-docx`）
@@ -314,7 +330,7 @@
 - **Embedding 选型**（参考 [MTEB 排行榜](https://huggingface.co/spaces/mteb/leaderboard)）：`text-embedding-3-small`（OpenAI）/ `BAAI/bge-large-zh-v1.5`（国内中文最强开源）/ `text-embedding-v3`（阿里）
 - **向量库选型**：
   - `FAISS`（本地，无服务，原型）→ `Chroma`（本地持久化，开发）→ `Qdrant`（生产，Docker 一行部署）
-  - `Milvus`（`pip install pymilvus`）：国内企业生产首选（Zilliz 国产），支持十亿级向量；Collection/Partition 层级适合多租户；HNSW/IVF_FLAT/DISKANN 索引类型按吞吐/精度权衡；本地用 `milvus-lite`
+  - `Milvus`（`pip install pymilvus`）：了解其在企业向量检索中的常见定位即可，不必前期深挖产品细节；本地可用 `milvus-lite`
 - **检索策略**：Dense（向量相似度）/ Sparse（`rank_bm25`，关键词精确匹配）/ **Hybrid RRF**（两路融合，通常提升 10-15%）
 - **RAGAS 评估**：`Faithfulness`（答案忠实度）/ `Answer Relevancy`（答案相关性）/ `Context Recall`（检索完整性）
 - **后端工程补充**：关注 ingest pipeline 的可重跑性、索引更新策略、离线评测脚本，而不是只关注 prompt 写法
@@ -334,7 +350,7 @@
 - `pip install langchain langchain-community llama-index faiss-cpu chromadb qdrant-client pymilvus[model] ragas sentence-transformers rank-bm25 PyMuPDF pdfplumber trafilatura`
 - 3 种分块 × 2 种 Embedding × 3 种检索 = **18 组合**，用 RAGAS 评估每种 `Context Recall@5`
 - 用 **LlamaIndex** 重写同一个 RAG，写 300 字 LangChain vs LlamaIndex 对比笔记
-- 用 `milvus-lite` 替换 FAISS 重跑最优组合，理解 Milvus Collection/Partition 设计
+- 如有余力，再用 `milvus-lite` 替换 FAISS 重跑最优组合，了解它在生产中的定位
 - **时间不够时的主线裁剪**：保留“1 种分块 + 1 种 embedding + Dense/Hybrid 两种检索 + 1 次框架改写”；Milvus 改为选修
 - **交付标准：** 18 组合 RAGAS 对比报告；Hybrid RRF 比最差组合提升 ≥ 15%
 
@@ -415,7 +431,7 @@
 </details>
 
 <details>
-<summary><strong>Week 8：上下文工程（Context Engineering）+ DSPy</strong></summary>
+<summary><strong>Week 8：上下文工程（Context Engineering）+ DSPy（选修）</strong></summary>
 
 **本周建议拆分：**
 - `Minimum`：把 Context Engineering 四策略落到已有 LangGraph Agent 中，并做 token / 质量对比
@@ -437,6 +453,7 @@
   - `dspy.Signature` → `dspy.ChainOfThought` / `dspy.Predict` → `dspy.MIPROv2` 优化器
   - 适合场景：有清晰的可程序化 metric + 20-100 条示例数据
 - **后端工程补充**：这一周的本质是“上下文预算管理”，这比 DSPy 本身更通用、更核心
+- **工具边界**：DSPy 在这份路线里是“可选的优化框架”，不是必须掌握的核心知识
 
 **重点学习资源：**
 - 📺 [Berkeley CS294 Fall 2024: Compound AI & DSPy](https://rdi.berkeley.edu/llm-agents/f24) — Omar Khattab（DSPy 作者）主讲 ⭐
@@ -463,7 +480,7 @@
 > **后端视角：** 这一阶段的主线其实是 `Evals + 服务化 + 安全治理`。多 Agent 和多模态是有业务需求时再加的系统能力，不是默认必选项。
 
 <details>
-<summary><strong>Week 9：多 Agent 架构 + Code Agent + MCP 协议</strong></summary>
+<summary><strong>Week 9：多 Agent 架构 + Code Agent + MCP（了解）</strong></summary>
 
 > **核心认知：** 市场上有数十个多 Agent 框架（LangGraph、CrewAI、AutoGen、AgentScope……），它们会持续迭代。不应该逐一学习每个框架，而应该理解框架存在的原因和解决的共性问题，做到举一反三。
 
@@ -471,7 +488,7 @@
 
 **本周建议拆分：**
 - `Minimum`：做出一个 Orchestrator-Worker 最小样例，并写清“为什么单 Agent 不够”
-- `Stretch`：MCP Server、Code Agent、自定义路由策略
+- `Stretch`：Code Agent、自定义路由策略；MCP Server 只做接口认知即可
 
 **知识点：**
 
@@ -504,6 +521,7 @@
 - Server 端：`pip install mcp`，`@server.tool()` 装饰器含完整 JSON Schema
 - Client 端：`from langchain_mcp_adapters.tools import load_mcp_tools`
 - **后端工程补充**：对大多数后端转 Agent 场景，MCP 是“值得理解的接口标准”，但不是前 2 个月必须精通的主题
+- **工具边界**：知道 MCP 解决什么问题、什么时候值得引入即可，不必把时间花在搭很多 Server 上
 
 **重点学习资源：**
 - 🎓 [DeepLearning.AI: Multi AI Agent Systems with crewAI](https://www.deeplearning.ai/short-courses/multi-ai-agent-systems-with-crewai/) — **目的是理解多 Agent 概念抽象，不是学 CrewAI**
@@ -518,7 +536,7 @@
 
 **实践：**
 - LangGraph `Send()` Orchestrator-Worker：5 家公司并行分析，记录并行比串行加速比
-- 手写 MCP Server（`search_arxiv` + `get_paper_abstract`），用 `mcp dev` 独立测试后集成进 LangGraph
+- 如有余力，再手写一个最小 MCP Server（`search_arxiv` + `get_paper_abstract`）做接口理解
 - Code Agent 沙箱实验：实现"写代码→执行→看报错→修改→重试"循环，测试 3 个任务的平均重试次数和成功率
 - **框架评估练习**：花 2 小时阅读任意一个新框架，用 5 个问题写 300 字评估报告
 - **交付标准：** 至少完成 1 个真正有并行价值的多 Agent 样例；如果没有业务必要，允许 MCP / Code Agent 顺延
@@ -530,7 +548,7 @@
 
 **本周建议拆分：**
 - `Minimum`：Unit Test + Golden Dataset + 端到端回归评测
-- `Stretch`：LLM-as-Judge 双模型交叉验证 + Langfuse 历史趋势看板
+- `Stretch`：LLM-as-Judge 双模型交叉验证 + 任一 tracing/eval 平台历史趋势看板
 
 **知识点：**
 - **Evals 三层体系**（每层都要实现）：
@@ -539,13 +557,13 @@
   - **End-to-End 层**：人工标注 Golden Dataset + LLM-as-Judge 打分 + 程序化验证（代码运行率/格式正确率）
 - **Golden Dataset 构建**：每条数据 `{input, expected_tool_sequence, reference_answer, difficulty, category}`；覆盖 4 类：直接回答 / 单工具 / 多步工具 / 模糊输入；20-30 条覆盖核心场景
 - **LLM-as-Judge 设计原则**：每分有具体 Rubric；Judge Prompt 中加 CoT（先分析再打分）；多模型交叉验证（GPT-4o + Qwen-Max，差异 > 2 分时人工复核）
-- **Langfuse 接入**（从本周起，之后每个项目都用）：`pip install langfuse`；`@observe` 装饰器自动追踪；`langfuse.score()` 写入评分；Dashboard 查看趋势
+- **Tracing / 观测平台接入**（从本周起，之后每个项目都用）：可用 `Langfuse` 或任一同类平台；核心是把 trace、score、成本和错误样本记录下来
 - CI 式评测流水线：每次修改 Prompt 后必须先跑 `python eval_pipeline.py`，输出对比报告后才决定是否保留
 - **后端工程补充**：这一周是整个 roadmap 的硬主线，不是附属主题。没有评测，后面的优化、服务化和项目都会失真
 
 **重点学习资源：**
 - 📚 [Anthropic Engineering: Demystifying Evals for AI Agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) ⭐ 必读
-- 📚 [Langfuse Tracing Quickstart](https://langfuse.com/docs/tracing) — 30 分钟跟做
+- 📚 [Langfuse Tracing Quickstart](https://langfuse.com/docs/tracing) — 作为 tracing 平台示例，30 分钟跟做
 - 📚 [Evidently AI: LLM Evaluation Applied Course](https://www.evidentlyai.com/llm-evaluation-course-practice) — 10 个 Python 实战教程
 
 **论文精读：**
@@ -555,7 +573,7 @@
 
 **实践：**
 - `pip install langfuse pytest deepeval`
-- 为 Week 6 Research Agent 构建三层评测流水线：Unit Test（`test_tools.py`）+ Golden Dataset（20条）+ LLM-as-Judge（Qwen-Max + GPT-4o 交叉验证）+ Langfuse Tracing
+- 为 Week 6 Research Agent 构建三层评测流水线：Unit Test（`test_tools.py`）+ Golden Dataset（20条）+ LLM-as-Judge（Qwen-Max + GPT-4o 交叉验证）+ 一套 tracing 记录
 - 做一次 Prompt 改进实验：改 System Prompt → 跑评测 → 输出前后对比报告
 - **交付标准：** 一键运行评测是硬要求；没有这套评测，不建议进入项目阶段
 
@@ -566,7 +584,7 @@
 
 **本周建议拆分：**
 - `Minimum`：PDF 解析 + 一个最小多模态问答链路
-- `Stretch`：多模态 RAG、Browser Agent、语音 Agent 按资源条件择优选 1-2 个，不建议一周内全做
+- `Stretch`：多模态 RAG、Browser Agent、语音 Agent 按资源条件择优选 1-2 个，不建议一周内全做，也不需要深入研究具体工具框架
 
 > **适用边界：** 如果你的目标岗位更偏通用 Agent 平台、企业知识库、工作流编排，而不是文档智能 / GUI 自动化，这一周可以整体降为选修，把时间挪给 Week 10 和 Week 12。
 
@@ -580,13 +598,14 @@
 - **多模态 RAG**：CLIP（`openai/clip-vit-base-patch32`）生成图片 512 维向量；文字 + 图片 chunk 存同一 Qdrant（`payload.type` 区分）；文字查询触发图文混合检索 → base64 传给 VLM
 - **Web Agent / Browser Agent**：`pip install browser-use playwright && playwright install chromium`；Agent 接收截图 → VLM 识别元素 → 输出动作（click/type/scroll）→ Playwright 执行 → 截图反馈
 - **语音 Agent 基础**（了解）：Whisper API 做 ASR；`edge-tts` 或 OpenAI TTS 做语音输出；以工具形式接入 Agent
+- **工具边界**：`browser-use`、`playwright` 只是实现载体，核心是理解“感知-决策-执行-反馈”闭环
 
 **重点学习资源：**
 - 📚 [Qwen2.5-VL 官方文档](https://qwen.readthedocs.io/en/latest/multimodal/vl_guide.html) — 图片输入格式 + 工具调用示例，必读
 - 📚 [PyMuPDF 文档: Working with Images](https://pymupdf.readthedocs.io/en/latest/how-to-work-with-images.html)
 - 📚 [PaddleOCR 快速开始](https://paddlepaddle.github.io/PaddleOCR/latest/quick_start.html)
 - 🎓 [DeepLearning.AI: Building Multimodal Search and RAG](https://www.deeplearning.ai/short-courses/building-multimodal-search-and-rag/)
-- 📚 [browser-use Quickstart](https://docs.browser-use.com/quickstart)
+- 📚 [browser-use Quickstart](https://docs.browser-use.com/quickstart) — 作为 Browser Agent 工具示例
 
 **论文精读：**
 - **LLaVA** (Liu et al., 2023) ⭐ — VLM 指令微调奠基
@@ -597,8 +616,8 @@
 **实践：**
 - `pip install PyMuPDF pdfplumber pdf2image paddlepaddle paddleocr transformers browser-use playwright && playwright install chromium`
 - **PDF 解析**：实现 `parse_pdf(path) -> list[{page_num, type, content}]`；人工验证 5 页识别率 ≥ 95%
-- **多模态 RAG**：Qdrant 混合索引（文字用 bge-large-zh，图片用 CLIP）→ Ollama 本地 `qwen2.5-vl:7b` → 测试 5 个图表问题
-- **Web Agent**：`browser-use` 实现 arxiv 搜索任务（自动搜索 → 找到第一篇 → 提取标题摘要 → 返回 JSON）
+- **多模态 RAG**：Qdrant 混合索引（文字用 bge-large-zh，图片用 CLIP）→ `qwen2.5-vl`（本地或 API）→ 测试 5 个图表问题
+- **Web Agent**：任选一种浏览器自动化组合实现 arxiv 搜索任务（自动搜索 → 找到第一篇 → 提取标题摘要 → 返回 JSON）
 - 机器资源不足时：优先用 API 跑 VLM；Browser Agent 可降级为“截图理解 + Playwright 固定流程”
 - **交付标准：** PDF 解析识别率 ≥ 95%；多模态 RAG 5/5 图表问题正确；Web Agent 任务成功（3 次尝试）
 
@@ -608,7 +627,7 @@
 <summary><strong>Week 12：LLMOps + 服务化部署 + 微调</strong></summary>
 
 **本周建议拆分：**
-- `Minimum`：FastAPI 服务化 + Docker Compose + Langfuse + 基础安全治理
+- `Minimum`：FastAPI 服务化 + Docker Compose + 一套 tracing/日志方案 + 基础安全治理
 - `Stretch`：vLLM、K8s、LoRA 三选一做深，不建议第一次就一周内全部做满
 
 > **后端优先级提醒：** 对后端工程师转 Agent 而言，`鉴权 / 限流 / 队列 / 幂等 / 监控` 的优先级高于 `LoRA / DPO / GRPO`。
@@ -616,9 +635,9 @@
 **知识点：**
 - **FastAPI 流式服务化**：`StreamingResponse` + SSE（`yield f"data: {token}\n\n"`）；`async def` + `asyncio.gather()` 并发工具调用；`/health` + `/metrics`；`asyncio.wait_for(timeout=60)` 超时控制
 - **Docker 容器化**：多阶段 Dockerfile（builder → runner，镜像体积减小 50%+）；`docker-compose.yml`（FastAPI + Redis + Qdrant + Langfuse）；`.env` 文件管理密钥
-- **Kubernetes 基础**（理解概念，不要求深度运维）：`Deployment`/`Service`/`Ingress`/`ConfigMap`（Prompt 热更新）/`CronJob`（定时触发）/`HPA`（自动扩缩容）；`helm create agent-chart` 打包
-- **vLLM 私有化部署**：`docker run --gpus all vllm/vllm-openai:latest --model Qwen/Qwen2.5-7B-Instruct`；OpenAI 兼容接口（只改 `base_url`）；`--quantization awq`（显存减少 50%）；`locust` 压测
-- **LLMOps**：Langfuse Docker Compose 私有化部署；成本监控（`project_cost_limit`）
+- **Kubernetes 基础**（理解概念，不要求深度运维）：`Deployment`/`Service`/`Ingress`/`ConfigMap`（Prompt 热更新）/`CronJob`（定时触发）/`HPA`（自动扩缩容）；知道这些对象如何支撑 Agent 服务即可
+- **vLLM 私有化部署**：了解它作为推理服务层的定位即可，需要私有化部署时再深入
+- **LLMOps / Tracing 工具**：Langfuse 只是示例；核心是成本监控、trace 记录、问题样本回放
 - **生产接口治理**（这部分在真实项目里非常常见，建议至少做最小版）：
   - 鉴权：API Key / JWT 二选一
   - 限流：按用户 / IP 做 rate limit
@@ -642,7 +661,7 @@
 - 📚 [FastAPI 文档: Async](https://fastapi.tiangolo.com/async/)
 - 📚 [vLLM 文档: Docker 部署](https://docs.vllm.ai/en/latest/serving/deploying_with_docker.html)
 - 📚 [Kubernetes 官方交互式教程](https://kubernetes.io/docs/tutorials/kubernetes-basics/) — 6 个模块，1 天完成
-- 📚 [Langfuse Self-Hosting](https://langfuse.com/docs/deployment/self-host)
+- 📚 [Langfuse Self-Hosting](https://langfuse.com/docs/deployment/self-host) — 作为 tracing 平台自托管示例
 - 📚 [Datawhale self-llm: Qwen2.5 LoRA 教程](https://github.com/datawhalechina/self-llm)
 
 **论文精读：**
@@ -653,12 +672,12 @@
 **实践：**
 - FastAPI + Docker：`POST /chat`（SSE）+ `GET /health`；多阶段 Dockerfile + docker-compose；`curl` 验证流式输出
 - vLLM 压测：10 并发 5 分钟，记录 QPS/P99/GPU 显存；AWQ 量化前后对比
-- K8s 实验：`minikube`，写 Deployment + ConfigMap（存 System Prompt）；修改 ConfigMap 后验证热更新生效
+- K8s 实验：`minikube`，写 Deployment + ConfigMap（存 System Prompt）；理解它如何支持服务发布与热更新
 - LoRA 微调：50 条 Tool Use 数据 → `SFTTrainer` 微调 `Qwen2.5-1.5B-Instruct`（Colab T4 可跑）→ 对比 20 条测试集格式正确率
 - 最小生产化补充：给 `/chat` 增加鉴权、限流和请求日志；若时间有限，优先于 LoRA
 - **交付标准：** 至少完成可用 API 服务 + 鉴权/限流/日志 + Docker 化；vLLM / K8s / LoRA 完成其一即可作为加分项
 
-**Phase 3 阶段检验：** 能解释多 Agent 选型标准；多模态 Agent 能处理图文混合 PDF；Agent 服务能 Docker 部署并接入 Langfuse；能独立完成 LoRA 微调完整闭环。
+**Phase 3 阶段检验：** 能解释多 Agent 选型标准；多模态 Agent 能处理图文混合 PDF；Agent 服务能 Docker 部署并接入一套 tracing/日志方案；能判断何时该用 LoRA 而不是盲目微调。
 
 </details>
 
@@ -696,12 +715,12 @@ upload_docs → parse → chunk_and_index
                         refine_report      output
 ```
 
-- **基础模型**：Qwen2.5-VL-7B（图文理解，Ollama）+ Qwen2.5-72B-Instruct API（报告生成）
+- **基础模型**：Qwen2.5-VL-7B（图文理解，本地或 API）+ Qwen2.5-72B-Instruct API（报告生成）
 - **文档处理**：PyMuPDF + pdfplumber（程序型）/ pdf2image + PaddleOCR（扫描型）；版式自动分类
 - **索引**：文字 chunk（bge-large-zh + Qdrant）+ 图片 chunk（CLIP + 同一 Qdrant Collection）
 - **工具集**：Tavily 搜索 / Python 代码执行 / matplotlib 图表生成
-- **Memory**：DSPy 优化报告生成 Prompt；用户偏好存 Redis
-- **部署**：FastAPI + Docker Compose（Qdrant + Ollama + Redis + Langfuse）
+- **Memory**：可选用 DSPy 优化报告生成 Prompt；用户偏好存 Redis
+- **部署**：FastAPI + Docker Compose（Qdrant + 模型服务 + Redis + tracing/logging）
 
 **关键工程挑战（面试重点）：**
 - 大 PDF 内存管理：分页流式处理，不全量加载
@@ -711,7 +730,7 @@ upload_docs → parse → chunk_and_index
 
 **交付物：**
 1. 图文混合问答准确率 ≥ 85%（20 条 Golden Dataset）
-2. FastAPI + Docker Compose 一键启动，含 Langfuse Tracing Dashboard
+2. FastAPI + Docker Compose 一键启动，含一套 tracing / logging 能力
 3. RAGAS + LLM-as-Judge 完整 Evals 报告（检索质量 + 报告质量 + 延迟/Token 成本）
 4. GitHub README 含系统架构图 + 10 分钟 demo 录屏
 
@@ -734,20 +753,20 @@ upload_docs → parse → chunk_and_index
 **技术架构：**
 
 **第一阶段：Dify 快速原型（Day 1–2）**
-- HTTP Request → LLM → Code → HTTP Request，2 天内跑通端到端，验证业务逻辑
+- HTTP Request → LLM → Code → HTTP Request，2 天内跑通端到端，验证业务逻辑；重点是验证流程，不是研究 Dify 产品本身
 
 **第二阶段：LangGraph 完整实现（Day 3–14）**
 - **Orchestrator**：接收任务 → `Send()` 并行分发给 4 个 Worker（Context 隔离）
   - `search_agent`：Tavily + requests，工具集仅限搜索/读取
   - `analyze_agent`：Code Interpreter，接入 DeepSeek-V3 API
-  - `report_agent`：Qwen2.5-72B + DSPy 优化 Prompt
-  - `notify_agent`：调用自定义 MCP Server（飞书/钉钉 Webhook）
-- **MCP Server**：`send_webhook()` + `save_report()`（持久化到 SQLite）
-- **K8s 生产部署**：Helm Chart（Deployment + ConfigMap + CronJob 定时 + HPA 自动扩容）
-- **LLMOps**：Langfuse 私有化 + Token 成本告警 + Prompt Injection 过滤中间件
+  - `report_agent`：Qwen2.5-72B + 可选的 Prompt 优化
+  - `notify_agent`：调用 webhook 或等价通知接口
+- **通知接口**：`send_webhook()` + `save_report()`（持久化到 SQLite）；MCP 只是可选封装方式
+- **K8s 生产部署**：Helm Chart（Deployment + ConfigMap + CronJob 定时 + HPA 自动扩容）；理解其生产价值即可
+- **LLMOps**：接入任一 tracing 平台 + Token 成本告警 + Prompt Injection 过滤中间件
 
 **交付物：**
-1. Dify 工作流截图 + LangGraph 代码 + Dify vs LangGraph 对比分析（200字）
+1. 工作流快速原型截图 + LangGraph 代码 + 原型工具 vs 自研实现对比分析（200字）
 2. Helm Chart 可在 minikube 一键部署，CronJob 可演示定时触发
 3. Evals 报告：10 次运行，质量/成本/延迟三维度；并行比串行加速比（目标 ≥ 3x）
 4. 系统架构图 + 多 Agent 选型量化论证文档
