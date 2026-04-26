@@ -12,6 +12,12 @@
 - Agent 工程师的核心是**工程能力**，不是 ML 研究能力。LLM 理解到"能解释其能力边界、知道它会在哪里失败"即可。
 - 生产级 Agent 最常见的失败原因（LangChain 2025 行业调查）：Tool Schema 设计差、Context 管理混乱、过早引入多 Agent、缺乏可观测性——这四个问题在路径中每个都有专门章节。
 - 每个实践节点明确三要素：**使用的具体库** + **参考的具体文档** + **可量化的交付标准**。
+- **先做最简单可行系统，再按证据加复杂度**：很多任务先用单次 LLM 调用、RAG 或固定 workflow 就够了，不要默认上 autonomous agent。
+- **优先学 workflow，再学 agent**：先掌握 prompt chaining、routing、parallelization、orchestrator-worker、evaluator-optimizer，再进入开放式 agent loop。
+- **先学 pattern catalog，再学框架名字**：真正可迁移的是 workflow pattern、tool contract、state model、eval loop 和 side-effect control，不是某个框架的专有 API。
+- **优先学 context engineering，而不只是 prompt wording**：真正决定效果上限的往往是上下文选择、压缩、路由、记忆和工具结果组织方式。
+- **先直接用 API，再用框架**：框架是加速器，不是理解替代品；只有当你能解释底层消息流、状态流和工具流时，框架才真正有价值。
+- **Trustworthy agents 默认不是附加项**：评测、审批点、回滚、停止条件、审计日志、权限边界，应当和 agent 主链路一起设计，而不是最后补。
 
 ---
 
@@ -81,6 +87,7 @@
 - 每周至少完成 1 个可运行实验和 1 份量化结果。
 - 优先级顺序固定：**单 Agent 原理 → RAG → LangGraph → Evals → 服务化 → 项目落地**。
 - 如果时间不够，优先砍掉“横向比较”和“前沿专题”，不要砍掉主线闭环。
+- 在任何一周，只要更简单的方案已经满足需求，就不要为了“更像 Agent”而强行升级架构。
 
 ### B. 进阶选修
 
@@ -114,6 +121,12 @@
 3. **RAG 与 Context Engineering**：检索、重排、压缩、记忆、长上下文取舍。
 4. **Evals 与可观测性**：Golden Dataset、回归评测、Tracing、成本/延迟/质量看板。
 5. **服务化与生产治理**：FastAPI、鉴权、限流、队列、幂等、容器化、部署。
+
+### 一条重要认知
+
+- `Prompt Engineering` 在这份路线里只是入口能力，不是最高优先级能力。
+- 真正贯穿全程的是 `Context Engineering + Workflow Design + Evals + Reliability`。
+- `Framework Knowledge` 在这份路线里也不是第一优先级，真正值钱的是“把 agent 系统做稳”的能力。
 
 ### 默认降级为次优先级的内容
 
@@ -172,7 +185,7 @@
 > **后端视角：** 这一阶段不是学“怎么和模型聊天”，而是学“怎么把模型接进一个可靠的后端系统”。
 
 <details>
-<summary><strong>Week 1：LLM API 工程化 + Prompt Engineering 基础</strong></summary>
+<summary><strong>Week 1：LLM API 工程化 + Prompt/Context 基础</strong></summary>
 
 **本周建议拆分：**
 - `Minimum`：打通 2 家模型 API + 结构化输出 + Pydantic 校验 + 超时/重试/日志
@@ -184,6 +197,7 @@
 - Sampling 参数实验：temperature（0/0.7/1.5 对比）、top-p、frequency_penalty、presence_penalty
 - **Structured Output**：OpenAI `response_format={"type": "json_schema"}`；Anthropic `tool_use` 强制 JSON；Pydantic v2 校验与容错解析（`model_validate_json` + try/except）
 - System Prompt 设计基础：角色定义、输出格式约束、few-shot 示例的位置效果
+- **Context 基础**：消息角色分层、示例放置位置、工具结果如何组织进上下文、哪些信息不该塞进 prompt
 - **后端工程补充**：配置管理（`.env` / settings）、超时、重试、请求日志、错误分级
 
 **重点学习资源：**
@@ -204,7 +218,7 @@
 </details>
 
 <details>
-<summary><strong>Week 2：高级 Prompt Engineering + 推理增强</strong></summary>
+<summary><strong>Week 2：高级 Prompt/Context 设计 + 推理增强</strong></summary>
 
 **本周建议拆分：**
 - `Minimum`：理解 Zero-shot CoT / Few-shot CoT / Self-Consistency 对质量和成本的影响
@@ -216,6 +230,7 @@
 - Tree of Thoughts：树状推理搜索（BFS + LLM 评估每步）；适合规划问题，不适合简单问答
 - 推理模型特点：DeepSeek-R1 的 `<think>` 慢思考；在 Agent 中的选择策略（规划用推理模型，工具调用用普通模型）
 - XML 结构化提示：`<context>`, `<instructions>`, `<examples>`, `<output_format>` 对遵循率的影响
+- **Context 进阶**：把任务做对，往往比“写更花的 prompt”更依赖上下文结构和输入分解
 - **后端工程补充**：本周重点是建立“效果/成本/延迟”的取舍意识，不是沉迷花式 Prompt 技巧
 
 **重点学习资源：**
@@ -245,6 +260,7 @@
 - ReAct 循环手动实现：while 循环处理 `tool_calls`，手动管理 `messages` list
 - 并行工具调用：`asyncio.gather` 并发执行多个 tool，批量回传
 - 错误处理：将异常信息作为 `tool` message 回传，指数退避重试（最多 3 次）
+- **Agent-Computer Interface（ACI）意识**：工具定义、参数命名、输入格式、错误返回本质上都是给模型设计接口，重要性不低于 prompt 本身
 - **安全前置**（从本周开始，不要等到生产化阶段再补）：
   - 代码执行工具默认禁用网络、限制运行目录、设置超时和输出长度上限
   - 文件工具必须做路径白名单，只允许访问工作目录
@@ -314,6 +330,8 @@
 
 > **后端视角：** 这一阶段要把 Agent 看成“检索、路由、状态、评测”构成的后端系统，而不是只会回答问题的聊天机器人。
 
+> **关键融合观点：** 在很多真实系统里，先做 `workflow + retrieval + evals` 往往比直接上开放式 agent 更稳、更便宜、更容易调试。
+
 <details>
 <summary><strong>Week 5：RAG 系统完整链路</strong></summary>
 
@@ -369,10 +387,17 @@
   - `add_node(name, func)`：处理函数签名 `def node(state) -> dict`
   - `add_edge` / `add_conditional_edges`：无条件/条件转移
   - `compile(checkpointer=...)`：`invoke` / `stream` 两种调用
+- **五种 workflow pattern 要能用代码解释清楚**：
+  - **Prompt Chaining**：上一步输出稳定地作为下一步输入，适合固定管线
+  - **Routing**：先分类再走不同处理分支，适合多意图入口
+  - **Parallelization**：可并行子任务同时跑，适合多数据源或多候选生成
+  - **Orchestrator-Worker**：一个节点拆任务，多个 worker 执行并汇总
+  - **Evaluator-Optimizer**：先生成，再用规则/模型评估，不达标则修正
 - 为什么需要 LangGraph：需要**循环**（质量不达标则重搜索）+ **条件分支** + **状态持久化**（中断续跑）+ **可视化**（`draw_mermaid()`）
 - `Checkpointer`：`MemorySaver` → `SqliteSaver` → `PostgresSaver`；`thread_id` 实现中断续跑
 - **Human-in-the-Loop**：`interrupt_before=["node"]` 暂停 → `graph.update_state()` 修改 → `invoke(None, config)` 继续
 - `Subgraph`：子 Agent 封装为独立 Graph，父 Graph 引用，实现复用和 Context 隔离
+- **Workflow vs Agent 区分**：固定路径、可预测任务优先用 workflow；只有当步骤数、路径或工具选择不可预判时，才升级成更开放的 agent loop
 - **后端工程补充**：把 LangGraph 当成“工作流编排引擎”，不是“又一个 Agent 框架”
 
 **重点学习资源：**
@@ -386,6 +411,7 @@
 
 **实践：**
 - `pip install langgraph langchain-openai tavily-python`
+- 用同一个 Research 任务分别实现 `routing` 和 `evaluator-optimizer` 两种 workflow，对比“固定 workflow 是否已经够用”
 - 实现 Research Agent：State（query/sources/draft/score/iterations）→ search → read → evaluate → 条件分支（分<7 循环，≥7 综合）→ output
 - `SqliteSaver` 持久化；手动中断后同一 `thread_id` 续跑；Human-in-the-Loop 审批 sources
 - **交付标准：** 除可视化外，必须能证明状态可恢复、流程可中断续跑、人工审批能改变执行路径
@@ -479,8 +505,10 @@
 
 > **后端视角：** 这一阶段的主线其实是 `Evals + 服务化 + 安全治理`。多 Agent 和多模态是有业务需求时再加的系统能力，不是默认必选项。
 
+> **关键融合观点：** 多 Agent 不代表更高级。只有当单 Agent 在并行性、上下文隔离、专业化工具集或长程任务上确实不够时，才值得升级。
+
 <details>
-<summary><strong>Week 9：多 Agent 架构 + Code Agent + MCP（了解）</strong></summary>
+<summary><strong>Week 9：多 Agent 架构 + Code Agent + Protocols（了解）</strong></summary>
 
 > **核心认知：** 市场上有数十个多 Agent 框架（LangGraph、CrewAI、AutoGen、AgentScope……），它们会持续迭代。不应该逐一学习每个框架，而应该理解框架存在的原因和解决的共性问题，做到举一反三。
 
@@ -488,7 +516,7 @@
 
 **本周建议拆分：**
 - `Minimum`：做出一个 Orchestrator-Worker 最小样例，并写清“为什么单 Agent 不够”
-- `Stretch`：Code Agent、自定义路由策略；MCP Server 只做接口认知即可
+- `Stretch`：Code Agent、自定义路由策略；协议层只做接口认知即可
 
 **知识点：**
 
@@ -497,6 +525,12 @@
 - ✅ 子任务需要专业化（代码 Agent 的工具集 ≠ 搜索 Agent，隔离更安全）
 - ✅ 单 Agent Context Window 装不下（任务分治）
 - ❌ 只是想"看起来高级"——单 Agent 够用绝对不引入多 Agent
+
+**从 workflow 升级到 agent 的判断问题：**
+1. 任务路径是否无法提前写死？
+2. 是否必须依赖环境反馈持续重规划？
+3. 是否存在明确的暂停点、审批点、停止条件？
+4. 是否有 evals 能证明 agent 比 workflow 更值得？
 
 **框架背后的共性问题（5个问题快速评估任何框架）：**
 1. **状态模型**：用什么数据结构表示 Agent 状态？
@@ -516,17 +550,19 @@
 - **测试驱动循环**：生成代码 → 执行 → 捕获完整 stderr（含 Traceback 和行号）→ 分析 → 修改 → 重试（最多 3-5 次）
 - **代码搜索工具**：`ast` 模块（Python AST 解析）/ `tree-sitter`（多语言）/ `ripgrep`
 
-**MCP 协议：**
-- 定位：工具/资源服务的标准化接口（跨框架复用）
-- Server 端：`pip install mcp`，`@server.tool()` 装饰器含完整 JSON Schema
-- Client 端：`from langchain_mcp_adapters.tools import load_mcp_tools`
-- **后端工程补充**：对大多数后端转 Agent 场景，MCP 是“值得理解的接口标准”，但不是前 2 个月必须精通的主题
-- **工具边界**：知道 MCP 解决什么问题、什么时候值得引入即可，不必把时间花在搭很多 Server 上
+**Agentic Protocols（了解即可）：**
+- **MCP**：工具/资源服务的标准化接口，核心价值是“跨框架复用同一批工具与资源”
+- **A2A**：Agent 与 Agent 的通信协议，核心价值是跨系统协作而非单进程内编排
+- **NLWeb**：把网站能力以自然语言接口暴露给 Agent，更偏生态方向认知
+- `pip install mcp`；Server 端用 `@server.tool()` 暴露 JSON Schema；Client 端可用适配器加载工具
+- **后端工程补充**：协议层是“接口标准认知”，不是这份路线前半段的产出重点
+- **工具边界**：知道这些协议分别解决什么问题、适合什么边界即可，不必一口气把三类协议都搭起来
 
 **重点学习资源：**
 - 🎓 [DeepLearning.AI: Multi AI Agent Systems with crewAI](https://www.deeplearning.ai/short-courses/multi-ai-agent-systems-with-crewai/) — **目的是理解多 Agent 概念抽象，不是学 CrewAI**
 - 📚 [LangGraph Multi-Agent Architectures 文档](https://langchain-ai.github.io/langgraph/concepts/multi_agent/)
 - 📚 [MCP 官方文档: Building Your First Server](https://modelcontextprotocol.io/quickstart/server)
+- 📚 [Microsoft ai-agents-for-beginners](https://github.com/microsoft/ai-agents-for-beginners) — 看 lessons 列表即可，重点关注 `Multi-Agent`、`Protocols`、`Context Engineering`
 - 📺 [Berkeley CS294 Fall 2025: 多智能体 AI](https://rdi.berkeley.edu/agentic-ai/f25) — Noam Brown 主讲
 
 **论文精读：**
@@ -536,10 +572,10 @@
 
 **实践：**
 - LangGraph `Send()` Orchestrator-Worker：5 家公司并行分析，记录并行比串行加速比
-- 如有余力，再手写一个最小 MCP Server（`search_arxiv` + `get_paper_abstract`）做接口理解
+- 如有余力，再手写一个最小 MCP Server（`search_arxiv` + `get_paper_abstract`）做接口理解；A2A / NLWeb 只需写 200 字边界判断
 - Code Agent 沙箱实验：实现"写代码→执行→看报错→修改→重试"循环，测试 3 个任务的平均重试次数和成功率
 - **框架评估练习**：花 2 小时阅读任意一个新框架，用 5 个问题写 300 字评估报告
-- **交付标准：** 至少完成 1 个真正有并行价值的多 Agent 样例；如果没有业务必要，允许 MCP / Code Agent 顺延
+- **交付标准：** 至少完成 1 个真正有并行价值的多 Agent 样例；如果没有业务必要，允许协议层 / Code Agent 顺延
 
 </details>
 
@@ -559,6 +595,9 @@
 - **LLM-as-Judge 设计原则**：每分有具体 Rubric；Judge Prompt 中加 CoT（先分析再打分）；多模型交叉验证（GPT-4o + Qwen-Max，差异 > 2 分时人工复核）
 - **Tracing / 观测平台接入**（从本周起，之后每个项目都用）：可用 `Langfuse` 或任一同类平台；核心是把 trace、score、成本和错误样本记录下来
 - CI 式评测流水线：每次修改 Prompt 后必须先跑 `python eval_pipeline.py`，输出对比报告后才决定是否保留
+- **Harness 思维**：长任务的稳定性不只取决于模型能力，更取决于停止条件、上下文重置、错误恢复、审批点和日志设计
+- **Metacognition / Self-Critique 的正确位置**：它是可选优化环节，不是默认开关。只有当 eval 证明“自检一轮”能稳定提升质量时，才值得付出额外延迟和成本
+- **Trustworthy Agent 最小清单**：高风险工具有人审；外部副作用可回滚；失败时可停止；关键动作可追溯；每次改 Prompt 都能回归测试
 - **后端工程补充**：这一周是整个 roadmap 的硬主线，不是附属主题。没有评测，后面的优化、服务化和项目都会失真
 
 **重点学习资源：**
@@ -575,6 +614,7 @@
 - `pip install langfuse pytest deepeval`
 - 为 Week 6 Research Agent 构建三层评测流水线：Unit Test（`test_tools.py`）+ Golden Dataset（20条）+ LLM-as-Judge（Qwen-Max + GPT-4o 交叉验证）+ 一套 tracing 记录
 - 做一次 Prompt 改进实验：改 System Prompt → 跑评测 → 输出前后对比报告
+- 选一个节点加 `self-critique` 或 `evaluator-optimizer` 回路，用相同数据集验证是否真的值得保留
 - **交付标准：** 一键运行评测是硬要求；没有这套评测，不建议进入项目阶段
 
 </details>
@@ -644,11 +684,14 @@
   - 后台任务：长耗时任务放入队列，不阻塞请求线程
   - 幂等：重复请求不重复扣费、不重复执行副作用工具
   - 配置分环境：dev / staging / prod 独立配置和 secrets
+  - 审批点：发邮件、写库、调用外部系统前可插入人工确认
+  - Kill Switch / 回滚：发现异常时可立刻停掉 agent 执行或回退到上一个稳定 Prompt / 配置
 - **Agent 安全完整体系**（4 个层面）：
   - **Prompt Injection 防护**：直接注入（正则过滤）+ 间接注入（tool 结果过一层 sanitizer LLM）
   - **越狱攻击识别**：角色扮演绕过/编码绕过/分步绕过；输出层 Llama Guard 或 `detoxify` 分类器
   - **PII 过滤**：`pip install presidio-analyzer`；中国身份证/手机号/银行卡正则检测 + 脱敏替换
   - **工具调用审计日志**：`{timestamp, agent_id, tool_name, args, result_hash, user_id}` append-only 存储；最小权限原则
+- **运维最小闭环**：异常报警、成本阈值报警、超时熔断、重试上限、事故复盘模板。能不能“出问题后可控”，比能不能跑出漂亮 demo 更重要
 - **微调精要**（跑通 pipeline > 深入算法）：
   - SFT 数据构造：从 Agent 运行日志提取高质量 tool use 轨迹，格式化为 JSONL
   - `pip install transformers peft trl datasets`；`SFTTrainer` 10 行核心代码；`LoraConfig(r=16, lora_alpha=32)`
