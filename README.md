@@ -108,6 +108,41 @@
 - 某周若未完成核心交付标准，不必死卡所有扩展实验，但至少要保证“主线最小成果”达标后再进下一周。
 - 建议为每周定义两个结果：`Minimum`（必须完成）和 `Stretch`（做完更好）。下面各周如未显式写出，可按该原则自行裁剪。
 
+### E. 强烈建议采用“单仓库贯穿 16 周”方式
+
+- 不要每周新建一个零散 demo。更好的做法是从 Week 1 开始维护同一个主仓库，后面每周在同一仓库上迭代能力。
+- 推荐仓库结构：
+
+```text
+agent-roadmap/
+  apps/
+    api/                # FastAPI 服务
+    console/            # 可选：最小调试前端或 CLI
+  agents/               # hand-written agent / workflows / subgraphs
+  tools/                # search / sql / code / file / browser 等工具
+  evals/
+    datasets/           # golden dataset
+    cases/              # 回归样例
+    reports/            # 每周评测结果
+  prompts/              # system prompt / judge prompt / templates
+  data/
+    raw/ processed/     # 原始文档和预处理产物
+  scripts/              # ingest / reindex / batch eval / load test
+  infra/                # docker-compose / k8s / env examples
+  docs/                 # 架构说明、失败复盘、实验记录
+```
+
+- 这样做的价值是：你在 Week 10/12/项目阶段看到的就是一个真实系统如何逐步长出来，而不是一堆彼此脱节的小样例。
+
+### F. 每周固定产物模板
+
+- 每周至少沉淀 4 个东西：
+  - `1` 个可运行入口：CLI / API / notebook 三选一，但优先 CLI 或 API
+  - `1` 份评测报告：质量 / 成本 / 延迟至少覆盖两项
+  - `1` 份设计说明：本周为什么这么设计，没选什么方案，为什么
+  - `1` 份失败样本记录：至少记录 3 个失败 case，而不是只留成功截图
+- 这样做的目的不是“写文档”，而是为面试、复盘、后续优化和项目展示留下证据链。
+
 ---
 
 ## 后端工程师版学习重点排序
@@ -139,6 +174,14 @@
 - 到 Week 8 时，你应该已经能独立做出一个**可评测、可持久化、有状态的单 Agent / Agentic RAG 服务**。
 - 到 Week 12 时，你应该已经能把这个系统**服务化、加上评测和基础安全治理**。
 - 到 Week 16 时，你应该至少有 **1 个完整项目 + 1 个精简项目**，而不是 2 个都做成半成品。
+
+### 面试视角下还必须覆盖的能力点
+
+- **结构化数据访问**：Agent 不只查网页和文件，很多真实场景要查 SQL/报表/内部系统；至少要做过只读 SQL 工具和安全边界。
+- **异步任务与调度**：OCR、批量分析、日报生成常常不是同步 HTTP 请求；至少要理解队列、后台任务和定时触发。
+- **缓存与状态存储**：Redis 这类组件在会话状态、幂等键、结果缓存、限流里都很常见，不能只停留在“知道有这个东西”。
+- **简单交互层**：哪怕主线是后端，也建议有最小 CLI、Swagger 或简易页面，便于调试 agent 行为和演示项目结果。
+- **线上问题定位**：会看 trace、日志、指标、失败轨迹，比会多一个框架更接近真实岗位要求。
 
 ---
 
@@ -213,6 +256,7 @@
 - `pip install openai anthropic dashscope tiktoken pydantic`；Ollama 安装并拉取 `qwen2.5:7b`
 - 定义 `ProductReview` Pydantic 模型，用 **OpenAI + DashScope + DeepSeek** 三套 SDK 各实现结构化提取（输入 20 条非结构化评论）
 - 用 `tiktoken` 统计同一段 500 字中文在不同模型下的 token 数对比
+- 从本周开始初始化主仓库：建 `apps/api`、`evals/reports`、`docs/weekly-notes` 目录，后续周次都在这套骨架上迭代
 - **交付标准：** 至少 2 家模型结构化提取稳定可跑；有 JSON 遵循率对比；基础日志/超时/重试机制到位
 
 </details>
@@ -261,6 +305,8 @@
 - 并行工具调用：`asyncio.gather` 并发执行多个 tool，批量回传
 - 错误处理：将异常信息作为 `tool` message 回传，指数退避重试（最多 3 次）
 - **Agent-Computer Interface（ACI）意识**：工具定义、参数命名、输入格式、错误返回本质上都是给模型设计接口，重要性不低于 prompt 本身
+- **工具分级意识**：只读工具（search/sql-read/file-read）与副作用工具（email/write-db/webhook/code-exec）必须分开设计，副作用工具默认更严格
+- **SQL / HTTP 工具是主线必修**：很多后端 Agent 岗位核心不是“网页搜索”，而是“安全地访问内部 API 和结构化数据”
 - **安全前置**（从本周开始，不要等到生产化阶段再补）：
   - 代码执行工具默认禁用网络、限制运行目录、设置超时和输出长度上限
   - 文件工具必须做路径白名单，只允许访问工作目录
@@ -276,9 +322,10 @@
 - **Toolformer** (Schick et al., Meta 2023) ⭐
 
 **实践：**
-- `pip install numexpr duckduckgo-search`；实现 4 个工具：搜索（`DDGS().text()`）/ 计算器（`numexpr.evaluate()`）/ 代码执行（`subprocess.run`）/ 文件读写（`pathlib`）
+- `pip install numexpr duckduckgo-search`；实现 5 个工具：搜索（`DDGS().text()`）/ 计算器（`numexpr.evaluate()`）/ 代码执行（`subprocess.run`）/ 文件读写（`pathlib`）/ 只读 SQL 查询（SQLite）
 - **完全不使用框架**，用原生 OpenAI API 手写完整 ReAct 循环
 - **Schema 质量对比实验**：模糊版 vs 精确版，各跑 50 条指令，统计调用成功率差异
+- 加一个最小 HTTP 工具，调用公开 API，体验“结构化返回 + 超时 + 重试 + 限制副作用”的真实接口接入
 - 如果你是第一次做 Agent：可把“代码执行”降级为受限 Python 表达式执行，先不开放任意 shell
 - **交付标准：** ReAct Agent 完成 10/10 测试任务；Schema 实验报告（两版成功率差 ≥ 15%）
 
@@ -351,6 +398,7 @@
   - `Milvus`（`pip install pymilvus`）：了解其在企业向量检索中的常见定位即可，不必前期深挖产品细节；本地可用 `milvus-lite`
 - **检索策略**：Dense（向量相似度）/ Sparse（`rank_bm25`，关键词精确匹配）/ **Hybrid RRF**（两路融合，通常提升 10-15%）
 - **RAGAS 评估**：`Faithfulness`（答案忠实度）/ `Answer Relevancy`（答案相关性）/ `Context Recall`（检索完整性）
+- **数据工程补充**：文档 ingest 要可重跑、可去重、可增量更新；这比单次 notebook 跑通更接近真实系统
 - **后端工程补充**：关注 ingest pipeline 的可重跑性、索引更新策略、离线评测脚本，而不是只关注 prompt 写法
 
 **重点学习资源：**
@@ -368,6 +416,7 @@
 - `pip install langchain langchain-community llama-index faiss-cpu chromadb qdrant-client pymilvus[model] ragas sentence-transformers rank-bm25 PyMuPDF pdfplumber trafilatura`
 - 3 种分块 × 2 种 Embedding × 3 种检索 = **18 组合**，用 RAGAS 评估每种 `Context Recall@5`
 - 用 **LlamaIndex** 重写同一个 RAG，写 300 字 LangChain vs LlamaIndex 对比笔记
+- 实现 `scripts/reindex.py` 和 `scripts/eval_rag.py`，避免主线只停留在 notebook
 - 如有余力，再用 `milvus-lite` 替换 FAISS 重跑最优组合，了解它在生产中的定位
 - **时间不够时的主线裁剪**：保留“1 种分块 + 1 种 embedding + Dense/Hybrid 两种检索 + 1 次框架改写”；Milvus 改为选修
 - **交付标准：** 18 组合 RAGAS 对比报告；Hybrid RRF 比最差组合提升 ≥ 15%
@@ -584,7 +633,7 @@
 
 **本周建议拆分：**
 - `Minimum`：Unit Test + Golden Dataset + 端到端回归评测
-- `Stretch`：LLM-as-Judge 双模型交叉验证 + 任一 tracing/eval 平台历史趋势看板
+- `Stretch`：LLM-as-Judge 双模型交叉验证 + 任一 tracing/eval 平台历史趋势看板 + 最小线上反馈入口
 
 **知识点：**
 - **Evals 三层体系**（每层都要实现）：
@@ -598,6 +647,7 @@
 - **Harness 思维**：长任务的稳定性不只取决于模型能力，更取决于停止条件、上下文重置、错误恢复、审批点和日志设计
 - **Metacognition / Self-Critique 的正确位置**：它是可选优化环节，不是默认开关。只有当 eval 证明“自检一轮”能稳定提升质量时，才值得付出额外延迟和成本
 - **Trustworthy Agent 最小清单**：高风险工具有人审；外部副作用可回滚；失败时可停止；关键动作可追溯；每次改 Prompt 都能回归测试
+- **离线评测 vs 在线反馈**：离线 eval 决定“改动是否值得合并”，在线 thumbs-up/down 或人工 review 决定“系统在真实输入下哪里还不够”
 - **后端工程补充**：这一周是整个 roadmap 的硬主线，不是附属主题。没有评测，后面的优化、服务化和项目都会失真
 
 **重点学习资源：**
@@ -615,6 +665,7 @@
 - 为 Week 6 Research Agent 构建三层评测流水线：Unit Test（`test_tools.py`）+ Golden Dataset（20条）+ LLM-as-Judge（Qwen-Max + GPT-4o 交叉验证）+ 一套 tracing 记录
 - 做一次 Prompt 改进实验：改 System Prompt → 跑评测 → 输出前后对比报告
 - 选一个节点加 `self-critique` 或 `evaluator-optimizer` 回路，用相同数据集验证是否真的值得保留
+- 给 API 或 CLI 增加最小反馈入口：`thumb_up/thumb_down + comment` 或人工审核结果记录
 - **交付标准：** 一键运行评测是硬要求；没有这套评测，不建议进入项目阶段
 
 </details>
@@ -675,6 +726,8 @@
 **知识点：**
 - **FastAPI 流式服务化**：`StreamingResponse` + SSE（`yield f"data: {token}\n\n"`）；`async def` + `asyncio.gather()` 并发工具调用；`/health` + `/metrics`；`asyncio.wait_for(timeout=60)` 超时控制
 - **Docker 容器化**：多阶段 Dockerfile（builder → runner，镜像体积减小 50%+）；`docker-compose.yml`（FastAPI + Redis + Qdrant + Langfuse）；`.env` 文件管理密钥
+- **Redis 的实际角色**：会话状态、缓存、幂等键、限流计数器、后台任务协调；不要只把它当“随便接一个中间件”
+- **后台任务与调度**：FastAPI `BackgroundTasks` 只适合轻任务；长任务更适合 Redis Queue / Celery / Arq / Dramatiq 等队列方案；日报类需求常要 `CronJob`
 - **Kubernetes 基础**（理解概念，不要求深度运维）：`Deployment`/`Service`/`Ingress`/`ConfigMap`（Prompt 热更新）/`CronJob`（定时触发）/`HPA`（自动扩缩容）；知道这些对象如何支撑 Agent 服务即可
 - **vLLM 私有化部署**：了解它作为推理服务层的定位即可，需要私有化部署时再深入
 - **LLMOps / Tracing 工具**：Langfuse 只是示例；核心是成本监控、trace 记录、问题样本回放
@@ -714,6 +767,7 @@
 
 **实践：**
 - FastAPI + Docker：`POST /chat`（SSE）+ `GET /health`；多阶段 Dockerfile + docker-compose；`curl` 验证流式输出
+- 加一个异步任务接口：`POST /jobs/report` 提交任务，`GET /jobs/{id}` 查询状态；哪怕底层只用 SQLite/Redis 做最小实现也值得
 - vLLM 压测：10 并发 5 分钟，记录 QPS/P99/GPU 显存；AWQ 量化前后对比
 - K8s 实验：`minikube`，写 Deployment + ConfigMap（存 System Prompt）；理解它如何支持服务发布与热更新
 - LoRA 微调：50 条 Tool Use 数据 → `SFTTrainer` 微调 `Qwen2.5-1.5B-Instruct`（Colab T4 可跑）→ 对比 20 条测试集格式正确率
@@ -731,6 +785,55 @@
 > 核心目标：综合运用所有能力，构建代码开源、有量化评测基线的真实 Agent 系统。
 
 > **后端视角：** 项目阶段的评价标准不是“功能堆了多少”，而是“系统边界是否清晰、接口是否稳定、评测是否可信、部署是否可复现”。
+
+> **求职视角：** 项目不是附属品，而是这份 roadmap 最终能否转化成 offer 的关键产物。面试官不会只看“你学过什么”，而会重点看“你真正做过什么、做到什么程度、能不能讲清楚”。
+
+### 项目阶段的硬目标
+
+- 至少产出 `1` 个主项目和 `1` 个副项目。
+- 主项目要达到“可以放在简历第一屏、可以被面试官连续追问 20 分钟”的标准。
+- 副项目的作用不是凑数，而是证明你不是只会一种场景。
+- 两个项目都必须同时具备：
+  - 明确业务场景
+  - 可运行代码
+  - 量化评测
+  - 架构说明
+  - 失败案例复盘
+  - 可演示入口
+
+### 项目选题原则
+
+- **优先选企业真实会买单的场景**：文档分析、知识库问答、报表分析、工作流自动化、内部 Copilot，优先于纯玩具类任务。
+- **优先选后端工程师能发挥优势的场景**：接口编排、工具调用、状态管理、评测、服务化、安全治理，比单纯“聊天效果很好”更容易体现工程价值。
+- **优先选面试时容易讲出 trade-off 的项目**：为什么用 RAG、不用微调；为什么单 Agent 不够；为什么需要审批点；为什么要异步任务。
+- **不要把两个项目做成同一种壳子**：一个更偏文档/RAG，一个更偏 workflow/automation，组合起来更适合简历展示。
+
+### 项目在简历里的呈现方式
+
+- 每个项目最终都应该能压缩成 `3-4` 条高质量简历 bullet，而不是一段泛泛描述。
+- 每条 bullet 尽量包含四个元素：`场景` + `你做了什么` + `用了哪些关键能力` + `结果如何量化`。
+- 示例结构：
+  - 设计并实现基于 `LangGraph + Qdrant + FastAPI` 的企业文档分析 Agent，支持图文混合 PDF 解析、Hybrid RAG 和报告生成。
+  - 搭建 `Golden Dataset + RAGAS + LLM-as-Judge` 评测体系，将检索召回质量提升 `15%+`，并沉淀失败样本复盘机制。
+  - 通过 `Docker Compose + Redis + tracing/logging` 完成服务化部署，支持异步任务、限流和人工审批点。
+
+### 面试官高频会追问的 8 类问题
+
+1. 为什么选这个项目，而不是别的 Agent 场景？
+2. 为什么这里要用 Agent / workflow / RAG，而不是普通脚本或规则系统？
+3. 你怎么做评测，怎么证明改动真的变好了？
+4. 哪些失败 case 最典型，你怎么定位和修复？
+5. 工具调用和上下文设计里，最影响效果的点是什么？
+6. 如果线上成本超预算、延迟过高、结果不稳定，你先查什么？
+7. 项目里哪些部分是工程问题，哪些部分是模型能力边界？
+8. 如果让你把这个项目带到生产环境，你下一步会补什么？
+
+### 建议在 Week 12 之前就开始准备的东西
+
+- 确定主项目和副项目分别服务什么岗位方向。
+- 预先收集数据样本、定义评测集、画出第一版架构图。
+- 提前想好项目名、README 结构、最终 demo 方式。
+- 不要等 Week 15 才第一次考虑“这个项目怎么写进简历”。
 
 <details>
 <summary><strong>Week 13–14：项目一 — 多模态智能文档分析 Agent</strong></summary>
@@ -776,6 +879,8 @@ upload_docs → parse → chunk_and_index
 2. FastAPI + Docker Compose 一键启动，含一套 tracing / logging 能力
 3. RAGAS + LLM-as-Judge 完整 Evals 报告（检索质量 + 报告质量 + 延迟/Token 成本）
 4. GitHub README 含系统架构图 + 10 分钟 demo 录屏
+5. 至少 1 份失败案例复盘：例如 OCR 错误、图片召回失败、上下文压缩导致信息缺失
+6. 写出 3 条可直接放进简历的 bullet，并准备一版 3 分钟项目讲解稿
 
 </details>
 
@@ -815,8 +920,83 @@ upload_docs → parse → chunk_and_index
 4. 系统架构图 + 多 Agent 选型量化论证文档
 5. 生产就绪检查清单（安全/成本/可观测性/错误处理）
 6. 代码开源 GitHub，README 含完整部署指南
+7. 至少一个“人工审批 / kill switch / 回滚”演示流程
+8. 写出 4 条可直接放进简历的 bullet，并准备一版“为什么必须多 Agent”的面试回答
 
 </details>
+
+---
+
+## 项目包装清单
+
+> 项目做完不等于能用于求职。下面这些包装物默认也属于项目交付的一部分。
+
+### 每个项目都建议具备
+
+- `README.md`
+  - 项目背景
+  - 系统架构图
+  - 核心链路
+  - 本地启动方式
+  - 评测方法
+  - 已知限制
+- `docs/architecture.md`
+  - 为什么这样分模块
+  - 为什么选这些模型 / 框架 / 存储
+  - 哪些地方做了取舍
+- `docs/postmortem.md`
+  - 至少 3 个失败 case
+  - 根因
+  - 修复办法
+  - 修复后是否真的改善
+- `demo`
+  - 最好有录屏
+  - 最差也要有可复现的命令行演示脚本
+- `resume bullets`
+  - 项目一 3 条
+  - 项目二 4 条
+
+### 最容易拉开差距的不是“功能更多”，而是这些东西
+
+- 你有评测，不是只会展示结果
+- 你有失败复盘，不是只讲成功路径
+- 你能解释 trade-off，不是只会背框架名
+- 你有部署和运维意识，不是只有 notebook
+- 你能把项目压缩成简历 bullet 和口头表达，不是只有代码仓库
+
+### 如果时间不够，项目部分的优先级应该这样排
+
+1. 先保住主项目完整度
+2. 再补主项目的评测、README、架构图、失败复盘
+3. 再做副项目的最小闭环
+4. 最后才是副项目的高级功能
+
+> 对求职结果来说，一个完整、可讲透、可演示、可量化的主项目，价值通常高于两个半成品项目。
+
+---
+
+## 实践加强版建议
+
+> 如果你觉得上面的主线还不够“像工程”，可以按下面这套方式执行，它会显著提升实践感和知识覆盖，但工作量也更大。
+
+### 方案 A：轻量版
+
+- 每周只做 `Minimum`
+- 所有实验都通过 CLI 运行
+- Phase 4 只把项目二做完整，项目一做精简版
+
+### 方案 B：标准版
+
+- 每周完成 `Minimum`，隔周完成一个 `Stretch`
+- 从 Week 5 起统一暴露 FastAPI 接口
+- 从 Week 10 起所有能力都接入统一 eval / trace
+
+### 方案 C：作品集版
+
+- Week 1 起统一维护单仓库
+- Week 6 起提供 CLI + API 双入口
+- Week 12 起补上异步 job、Redis、最小前端调试台、部署脚本
+- Phase 4 两个项目都产出 README、架构图、评测报告、失败复盘和 demo
 
 ---
 
@@ -829,8 +1009,11 @@ upload_docs → parse → chunk_and_index
 | 鉴权 / RBAC | Agent 往往会调工具和读数据，没有权限边界很危险 | Week 12 / 项目阶段 |
 | Rate Limit / 配额 | 控成本、防刷、防雪崩 | Week 12 |
 | 队列与异步任务 | OCR、检索、报告生成通常超过同步请求时长 | Week 12 / 项目阶段 |
+| Redis / 缓存策略 | 状态、限流、幂等、结果缓存都常依赖它 | Week 12 / 项目阶段 |
+| SQL / 内部 API 工具 | 很多真实业务不靠网页搜索，而靠内部系统 | Week 3 / 项目阶段 |
 | 幂等与重试 | Agent 天生容易多次调用工具，副作用控制很关键 | Week 9 / 12 |
 | Prompt / Dataset 版本管理 | 不做版本化就无法科学比较实验结果 | Week 10 |
+| 在线反馈闭环 | 离线 eval 不等于真实用户满意度 | Week 10 / 项目阶段 |
 | CI/CD 与回滚 | Prompt、代码、模型配置都需要可回滚 | 项目阶段 |
 | SLO / 告警 | 线上问题首先体现为延迟、错误率、成本飙升 | Week 12 / 项目阶段 |
 | 失败案例复盘机制 | Agent 工程进步主要来自失败样本，不来自“成功 demo” | Week 10 之后持续执行 |
