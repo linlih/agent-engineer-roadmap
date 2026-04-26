@@ -1,8 +1,12 @@
-# 4个月成为 Agent 开发工程师专家
+# 4个月后端转 Agent 开发工程师：系统 Roadmap
 
-> 面向已具备编程基础的工程师，16 周系统路径，从 LLM API 工程化到生产级 Agent 系统设计与落地。
+> 面向**有良好编程基础的后端开发工程师**，16 周系统路径，从 LLM API 工程化到生产级 Agent 系统设计与落地。
 
 **核心主线：** 会用 → 会造 → 会调优 → 会生产化
+
+**更现实的结果预期：**
+- 这份路线的目标不是“16 周成为行业顶级专家”，而是**在 4 个月内建立可独立完成中小型 Agent 项目、能清楚解释工程取舍、具备面试与落地能力的系统能力**。
+- 如果你已经具备扎实的后端开发经验，完成主线后可达到“Agent 开发工程师”较强候选人的水平；要成为“专家”，通常还需要后续 6-12 个月的真实项目迭代。
 
 **设计原则：**
 - Agent 工程师的核心是**工程能力**，不是 ML 研究能力。LLM 理解到"能解释其能力边界、知道它会在哪里失败"即可。
@@ -13,15 +17,49 @@
 
 ## 目录
 
+- [开始前先看](#开始前先看)
 - [总体阶段划分](#总体阶段划分)
+- [执行方式：主线必修 vs 进阶选修](#执行方式主线必修-vs-进阶选修)
 - [贯穿全程背景资源](#贯穿全程背景资源)
 - [Phase 1：LLM工程化 + 单Agent原理（Week 1–4）](#phase-1llm工程化--单agent原理week-14)
 - [Phase 2：RAG全栈 + 主流框架（Week 5–8）](#phase-2rag全栈--主流框架week-58)
 - [Phase 3：多Agent + 多模态 + 生产工程（Week 9–12）](#phase-3多agent--多模态--生产工程week-912)
 - [Phase 4：两个真实项目落地（Week 13–16）](#phase-4两个真实项目落地week-1316)
+- [建议新增但不要一开始全学的工程内容](#建议新增但不要一开始全学的工程内容)
 - [核心论文清单](#核心论文清单)
 - [核心资源总索引](#核心资源总索引)
 - [每周学习节奏](#每周学习节奏)
+
+---
+
+## 开始前先看
+
+### 适合人群
+
+- 目标人群只包括**有良好编程基础的后端开发工程师**，默认你已经熟悉服务开发、数据库、接口设计、日志排障、部署和基本测试。
+- 推荐技术基础：Python 或至少能快速切到 Python；能独立写脚本、调 API、读英文文档。
+- 如果你还不熟悉 `asyncio`、HTTP、Docker、`pytest`、SQL/SQLite，建议先补 1 周工程基础再进入主线。
+- 如果你不是后端工程师，这份路线图不是为你设计的，执行成本和理解门槛会明显更高。
+
+### 时间投入假设
+
+| 档位 | 每周投入 | 建议走法 |
+|------|---------|---------|
+| 高强度 | 15-20 小时 | 可按本文主线推进，大部分实验都能做 |
+| 标准 | 10-12 小时 | 主线必修全做，进阶选修择优做 |
+| 低强度 | 6-8 小时 | 每周只保留 1 个核心实验，项目阶段延长到 6 个月更合理 |
+
+### 环境 / 预算假设
+
+- **API 预算**：若全程都做量化实验，建议预留 300-1000 RMB 的 API 成本空间；如果预算紧张，优先保留主线实验，减少多模型横评次数。
+- **本地机器**：CPU 即可完成大部分基础实验；如果希望本地跑多模态、reranker、LoRA 或 vLLM，最好有 NVIDIA GPU。没有 GPU 时，Week 11/12 的本地模型实验可改为 API 或 Colab。
+- **系统环境**：建议 Linux / macOS；Windows 也能做，但在 Ollama、Playwright、PaddleOCR、Docker、minikube 环节会更折腾。
+
+### 执行建议
+
+- 这份路线故意覆盖得比较全，但**不是每个点都必须在 16 周内做完**。
+- 判断是否达标，看“是否能解释设计取舍并交付稳定代码”，不要只看“是否把每个名词都碰过”。
+- 这份路线默认你会用后端工程师的视角来学习 Agent：把它当成一个需要接口、状态、工具、安全、评测、部署和运维的系统，而不是只会写 Prompt 的应用层 Demo。
 
 ---
 
@@ -30,9 +68,54 @@
 | 阶段 | 周次 | 核心能力 |
 |------|------|---------|
 | Phase 1 | Week 1–4 | LLM工程化使用 + 单Agent原理与手写实现 |
-| Phase 2 | Week 5–8 | 知识系统（RAG全栈）+ 主流框架精通 |
-| Phase 3 | Week 9–12 | 多Agent设计 + 多模态 + 生产工程（Evals/LLMOps/微调）|
+| Phase 2 | Week 5–8 | RAG系统 + LangGraph工作流 + 上下文管理 |
+| Phase 3 | Week 9–12 | Evals + 服务化 + 安全 + 多Agent / 多模态进阶 |
 | Phase 4 | Week 13–16 | 两个真实项目落地 |
+
+---
+
+## 执行方式：主线必修 vs 进阶选修
+
+### A. 主线必修
+
+- 每周至少完成 1 个可运行实验和 1 份量化结果。
+- 优先级顺序固定：**单 Agent 原理 → RAG → LangGraph → Evals → 服务化 → 项目落地**。
+- 如果时间不够，优先砍掉“横向比较”和“前沿专题”，不要砍掉主线闭环。
+
+### B. 进阶选修
+
+- GraphRAG、DSPy、Dify、Browser Agent、LoRA、vLLM、K8s、MCP Server 都属于“进阶选修”。
+- 这些内容很有价值，但不应阻塞主线进度。做不完时，允许先做最小可运行版本，再在项目阶段回补。
+
+### C. 每周顺延规则
+
+- 某周若未完成核心交付标准，不必死卡所有扩展实验，但至少要保证“主线最小成果”达标后再进下一周。
+- 建议为每周定义两个结果：`Minimum`（必须完成）和 `Stretch`（做完更好）。下面各周如未显式写出，可按该原则自行裁剪。
+
+---
+
+## 后端工程师版学习重点排序
+
+> 这份路线不是按“概念覆盖面最大化”设计，而是按“后端工程师转 Agent 开发后，最先能打的能力”排序。
+
+### 优先级从高到低
+
+1. **LLM API 工程化**：结构化输出、超时、重试、token 成本、配置管理、日志。
+2. **Tool Use 与状态工作流**：工具协议、状态管理、检查点、错误恢复、人机审批。
+3. **RAG 与 Context Engineering**：检索、重排、压缩、记忆、长上下文取舍。
+4. **Evals 与可观测性**：Golden Dataset、回归评测、Tracing、成本/延迟/质量看板。
+5. **服务化与生产治理**：FastAPI、鉴权、限流、队列、幂等、容器化、部署。
+
+### 默认降级为次优先级的内容
+
+- Tree of Thoughts、GraphRAG、DSPy、MCP Server、Browser Agent、LoRA、K8s、vLLM 都是重要能力，但对“后端转 Agent”的前四周和前八周不是最短路径。
+- 这些内容保留在文档中，但默认都按“进阶选修”理解，除非你的目标岗位明确要求。
+
+### 16 周主线判断标准
+
+- 到 Week 8 时，你应该已经能独立做出一个**可评测、可持久化、有状态的单 Agent / Agentic RAG 服务**。
+- 到 Week 12 时，你应该已经能把这个系统**服务化、加上评测和基础安全治理**。
+- 到 Week 16 时，你应该至少有 **1 个完整项目 + 1 个精简项目**，而不是 2 个都做成半成品。
 
 ---
 
@@ -70,8 +153,14 @@
 
 > 核心目标：把 LLM 当成工具用到极致，然后手写一个完整 Agent，不依赖任何框架。
 
+> **后端视角：** 这一阶段不是学“怎么和模型聊天”，而是学“怎么把模型接进一个可靠的后端系统”。
+
 <details>
 <summary><strong>Week 1：LLM API 工程化 + Prompt Engineering 基础</strong></summary>
+
+**本周建议拆分：**
+- `Minimum`：打通 2 家模型 API + 结构化输出 + Pydantic 校验 + 超时/重试/日志
+- `Stretch`：做 3 家模型横评 + 本地 Ollama 对照实验
 
 **知识点：**
 - 主流 API 接入：OpenAI / Anthropic / DashScope（Qwen）/ DeepSeek / 文心 的 Chat Completion 格式；`role` 字段含义（system/user/assistant/tool）
@@ -79,6 +168,7 @@
 - Sampling 参数实验：temperature（0/0.7/1.5 对比）、top-p、frequency_penalty、presence_penalty
 - **Structured Output**：OpenAI `response_format={"type": "json_schema"}`；Anthropic `tool_use` 强制 JSON；Pydantic v2 校验与容错解析（`model_validate_json` + try/except）
 - System Prompt 设计基础：角色定义、输出格式约束、few-shot 示例的位置效果
+- **后端工程补充**：配置管理（`.env` / settings）、超时、重试、请求日志、错误分级
 
 **重点学习资源：**
 - 🎓 [DeepLearning.AI: ChatGPT Prompt Engineering for Developers](https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/) — 免费，2小时，先看
@@ -93,12 +183,16 @@
 - `pip install openai anthropic dashscope tiktoken pydantic`；Ollama 安装并拉取 `qwen2.5:7b`
 - 定义 `ProductReview` Pydantic 模型，用 **OpenAI + DashScope + DeepSeek** 三套 SDK 各实现结构化提取（输入 20 条非结构化评论）
 - 用 `tiktoken` 统计同一段 500 字中文在不同模型下的 token 数对比
-- **交付标准：** 三模型 JSON 遵循率对比报告（各 20 条）；Ollama 本地可对话；代码推送 GitHub
+- **交付标准：** 至少 2 家模型结构化提取稳定可跑；有 JSON 遵循率对比；基础日志/超时/重试机制到位
 
 </details>
 
 <details>
 <summary><strong>Week 2：高级 Prompt Engineering + 推理增强</strong></summary>
+
+**本周建议拆分：**
+- `Minimum`：理解 Zero-shot CoT / Few-shot CoT / Self-Consistency 对质量和成本的影响
+- `Stretch`：实现 ToT 或深入对比推理模型
 
 **知识点：**
 - CoT 两种：Zero-shot CoT（"请一步步思考"）vs Few-shot CoT（手写 3 条含推理过程的示例）
@@ -106,6 +200,7 @@
 - Tree of Thoughts：树状推理搜索（BFS + LLM 评估每步）；适合规划问题，不适合简单问答
 - 推理模型特点：DeepSeek-R1 的 `<think>` 慢思考；在 Agent 中的选择策略（规划用推理模型，工具调用用普通模型）
 - XML 结构化提示：`<context>`, `<instructions>`, `<examples>`, `<output_format>` 对遵循率的影响
+- **后端工程补充**：本周重点是建立“效果/成本/延迟”的取舍意识，不是沉迷花式 Prompt 技巧
 
 **重点学习资源：**
 - 📚 [Anthropic Prompt Engineering Guide](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview) — 重点读 XML 结构、复杂指令、减少幻觉章节
@@ -121,7 +216,7 @@
 **实践：**
 - 取 [GSM8K](https://github.com/openai/grade-school-math) 前 30 道题，对比 4 种方法准确率：Standard / Zero-shot CoT / Few-shot CoT / Self-Consistency（5路采样）
 - 用 DeepSeek-R1 跑同一批题，记录 `think` 过程长度与正确率的相关性
-- **交付标准：** 4 方法准确率对比表（含 random seed 可复现）；R1 vs 普通模型对比报告
+- **交付标准：** 至少完成 3 种推理策略对比；写出“什么场景值得为更高质量付出更多 token 成本”的结论
 
 </details>
 
@@ -134,6 +229,10 @@
 - ReAct 循环手动实现：while 循环处理 `tool_calls`，手动管理 `messages` list
 - 并行工具调用：`asyncio.gather` 并发执行多个 tool，批量回传
 - 错误处理：将异常信息作为 `tool` message 回传，指数退避重试（最多 3 次）
+- **安全前置**（从本周开始，不要等到生产化阶段再补）：
+  - 代码执行工具默认禁用网络、限制运行目录、设置超时和输出长度上限
+  - 文件工具必须做路径白名单，只允许访问工作目录
+  - 每个工具都要有审计日志：输入参数、执行耗时、异常信息
 
 **重点学习资源：**
 - 🎓 [DeepLearning.AI: Agent Skills with Anthropic](https://www.deeplearning.ai/short-courses/agent-skills-with-anthropic/) — 官方课程，重点跟做
@@ -148,12 +247,17 @@
 - `pip install numexpr duckduckgo-search`；实现 4 个工具：搜索（`DDGS().text()`）/ 计算器（`numexpr.evaluate()`）/ 代码执行（`subprocess.run`）/ 文件读写（`pathlib`）
 - **完全不使用框架**，用原生 OpenAI API 手写完整 ReAct 循环
 - **Schema 质量对比实验**：模糊版 vs 精确版，各跑 50 条指令，统计调用成功率差异
+- 如果你是第一次做 Agent：可把“代码执行”降级为受限 Python 表达式执行，先不开放任意 shell
 - **交付标准：** ReAct Agent 完成 10/10 测试任务；Schema 实验报告（两版成功率差 ≥ 15%）
 
 </details>
 
 <details>
 <summary><strong>Week 4：Agent 核心模式 — Planning / Memory / Reflection</strong></summary>
+
+**本周建议拆分：**
+- `Minimum`：Plan-Execute + Episodic Memory（SQLite）+ Reflection 打通
+- `Stretch`：语义记忆蒸馏、复杂长期记忆策略
 
 **知识点：**
 - Planning 两种模式：**ReAct**（边想边做，适合开放任务）vs **Plan-Execute**（先规划 JSON 列表再执行，适合结构固定任务）；步骤失败时触发重规划
@@ -164,6 +268,7 @@
   - 语义（Semantic）：LLM 定期从 Episodic 中蒸馏规律为 facts 文本，注入下次对话 System Prompt
 - Reflection 机制：任务结束后 LLM 自评分（1-10）+ 50 字教训 → 写入 Episodic Memory → 下次相似任务前检索注入
 - Context Window 管理：`summarize` 策略（LLM 压缩最旧 4 条为 1 条摘要）vs `truncate` 策略
+- **后端工程补充**：本周重点不是“记忆概念多完整”，而是把状态、历史和经验真正落到可存储、可回放、可复现的结构里
 
 **重点学习资源：**
 - 🎓 [DeepLearning.AI: Agentic AI](https://learn.deeplearning.ai/courses/agentic-ai/) — 吴恩达主讲 ⭐ 免费
@@ -179,7 +284,7 @@
 - `pip install faiss-cpu sentence-transformers`
 - 在 Week 3 手写 Agent 基础上添加：Plan-Execute 架构 + FAISS 长期记忆（`all-MiniLM-L6-v2` embedding）+ Reflection 模块（写入 `episodes.json`）
 - 测试：同一个 10 步任务连跑 5 次，记录有无 Reflection 的成功率曲线
-- **交付标准：** 三模块完整实现；5 次迭代成功率曲线图；代码 ≤ 500 行
+- **交付标准：** 至少完成 Plan-Execute + 结构化历史存储 + Reflection 回写；能复盘失败轨迹而不是只展示成功 demo
 
 **Phase 1 阶段检验：** 不依赖任何框架，用原生 API 实现含 Planning + Memory + Tool Use + Reflection 的完整 Agent，并能清晰讲解每部分的工作原理和设计取舍。
 
@@ -189,10 +294,16 @@
 
 ## Phase 2：RAG全栈 + 主流框架（Week 5–8）
 
-> 核心目标：掌握 LangChain/LlamaIndex + LangGraph + RAG 的完整工程能力。
+> 核心目标：掌握 **检索增强系统 + 有状态工作流 + 上下文工程** 的完整工程能力。
+
+> **后端视角：** 这一阶段要把 Agent 看成“检索、路由、状态、评测”构成的后端系统，而不是只会回答问题的聊天机器人。
 
 <details>
 <summary><strong>Week 5：RAG 系统完整链路</strong></summary>
+
+**本周建议拆分：**
+- `Minimum`：先把 parse → chunk → index → retrieve → answer → eval 的单条链路打通
+- `Stretch`：多 embedding、多检索策略横评；Milvus 对比实验
 
 **知识点：**
 - **文档解析**：程序型 PDF（`PyMuPDF`/`pdfplumber`）/ 扫描型（`pdf2image` → `PaddleOCR`）/ HTML（`trafilatura`）/ Word（`python-docx`）
@@ -206,6 +317,7 @@
   - `Milvus`（`pip install pymilvus`）：国内企业生产首选（Zilliz 国产），支持十亿级向量；Collection/Partition 层级适合多租户；HNSW/IVF_FLAT/DISKANN 索引类型按吞吐/精度权衡；本地用 `milvus-lite`
 - **检索策略**：Dense（向量相似度）/ Sparse（`rank_bm25`，关键词精确匹配）/ **Hybrid RRF**（两路融合，通常提升 10-15%）
 - **RAGAS 评估**：`Faithfulness`（答案忠实度）/ `Answer Relevancy`（答案相关性）/ `Context Recall`（检索完整性）
+- **后端工程补充**：关注 ingest pipeline 的可重跑性、索引更新策略、离线评测脚本，而不是只关注 prompt 写法
 
 **重点学习资源：**
 - 🎓 [DeepLearning.AI: LangChain Chat with Your Data](https://www.deeplearning.ai/short-courses/langchain-chat-with-your-data/)
@@ -223,12 +335,17 @@
 - 3 种分块 × 2 种 Embedding × 3 种检索 = **18 组合**，用 RAGAS 评估每种 `Context Recall@5`
 - 用 **LlamaIndex** 重写同一个 RAG，写 300 字 LangChain vs LlamaIndex 对比笔记
 - 用 `milvus-lite` 替换 FAISS 重跑最优组合，理解 Milvus Collection/Partition 设计
+- **时间不够时的主线裁剪**：保留“1 种分块 + 1 种 embedding + Dense/Hybrid 两种检索 + 1 次框架改写”；Milvus 改为选修
 - **交付标准：** 18 组合 RAGAS 对比报告；Hybrid RRF 比最差组合提升 ≥ 15%
 
 </details>
 
 <details>
 <summary><strong>Week 6：LangGraph — 有状态工作流 Agent</strong></summary>
+
+**本周建议拆分：**
+- `Minimum`：StateGraph + 条件分支 + 持久化检查点 + Human-in-the-Loop
+- `Stretch`：Subgraph 复用和更复杂循环
 
 **知识点：**
 - LangGraph 核心抽象（逐一手写）：
@@ -240,6 +357,7 @@
 - `Checkpointer`：`MemorySaver` → `SqliteSaver` → `PostgresSaver`；`thread_id` 实现中断续跑
 - **Human-in-the-Loop**：`interrupt_before=["node"]` 暂停 → `graph.update_state()` 修改 → `invoke(None, config)` 继续
 - `Subgraph`：子 Agent 封装为独立 Graph，父 Graph 引用，实现复用和 Context 隔离
+- **后端工程补充**：把 LangGraph 当成“工作流编排引擎”，不是“又一个 Agent 框架”
 
 **重点学习资源：**
 - 🎓 [DeepLearning.AI: AI Agents in LangGraph](https://www.deeplearning.ai/short-courses/ai-agents-in-langgraph/) ⭐ 免费，必做
@@ -254,12 +372,16 @@
 - `pip install langgraph langchain-openai tavily-python`
 - 实现 Research Agent：State（query/sources/draft/score/iterations）→ search → read → evaluate → 条件分支（分<7 循环，≥7 综合）→ output
 - `SqliteSaver` 持久化；手动中断后同一 `thread_id` 续跑；Human-in-the-Loop 审批 sources
-- **交付标准：** `draw_mermaid()` 可可视化；Human-in-the-Loop 可演示；10 任务完成率 ≥ 80%
+- **交付标准：** 除可视化外，必须能证明状态可恢复、流程可中断续跑、人工审批能改变执行路径
 
 </details>
 
 <details>
 <summary><strong>Week 7：高级 RAG + Memory 系统</strong></summary>
+
+**本周建议拆分：**
+- `Minimum`：HyDE / Reranker / Multi-Query 三选二 + 跨会话记忆打通
+- `Stretch`：GraphRAG 跑完整 pipeline，并整理一份“什么问题值得用 GraphRAG”的判断标准
 
 **知识点：**
 - 高级检索技术栈（每个都要手写，理解背后的问题和解法）：
@@ -287,12 +409,17 @@
 - 在 Week 5 RAG 基础上逐步升级，每步验证 RAGAS 指标变化：HyDE → Reranker → Multi-Query
 - GraphRAG 对 20 篇文章建索引，测试 3 个普通 RAG 答不好的跨文档关联问题
 - 为 Week 6 Agent 添加完整四类记忆，验证"第二次对话能正确引用第一次的特定细节"
+- 如果每周投入不足 12 小时，建议先把 GraphRAG 顺延到项目一中作为增强项
 - **交付标准：** HyDE + Reranker 组合 Context Recall@5 比基础 Dense 提升 ≥ 15%；跨会话记忆可演示
 
 </details>
 
 <details>
 <summary><strong>Week 8：上下文工程（Context Engineering）+ DSPy</strong></summary>
+
+**本周建议拆分：**
+- `Minimum`：把 Context Engineering 四策略落到已有 LangGraph Agent 中，并做 token / 质量对比
+- `Stretch`：DSPy 自动优化跑通；如果手头没有稳定标注集，DSPy 可以延后到项目阶段
 
 **知识点：**
 - **Context Engineering 四策略**（Agent 工程最核心的能力之一）：
@@ -309,6 +436,7 @@
   - 核心思想：将 Prompt 优化变成有 Metric 的优化问题，自动搜索最优 Prompt 和示例
   - `dspy.Signature` → `dspy.ChainOfThought` / `dspy.Predict` → `dspy.MIPROv2` 优化器
   - 适合场景：有清晰的可程序化 metric + 20-100 条示例数据
+- **后端工程补充**：这一周的本质是“上下文预算管理”，这比 DSPy 本身更通用、更核心
 
 **重点学习资源：**
 - 📺 [Berkeley CS294 Fall 2024: Compound AI & DSPy](https://rdi.berkeley.edu/llm-agents/f24) — Omar Khattab（DSPy 作者）主讲 ⭐
@@ -332,10 +460,18 @@
 
 ## Phase 3：多Agent + 多模态 + 生产工程（Week 9–12）
 
+> **后端视角：** 这一阶段的主线其实是 `Evals + 服务化 + 安全治理`。多 Agent 和多模态是有业务需求时再加的系统能力，不是默认必选项。
+
 <details>
 <summary><strong>Week 9：多 Agent 架构 + Code Agent + MCP 协议</strong></summary>
 
 > **核心认知：** 市场上有数十个多 Agent 框架（LangGraph、CrewAI、AutoGen、AgentScope……），它们会持续迭代。不应该逐一学习每个框架，而应该理解框架存在的原因和解决的共性问题，做到举一反三。
+
+> **执行建议：** 这一周的重点不是“会多少框架”，而是“知道何时不该上多 Agent”。如果单 Agent 还不稳定，优先回头修单 Agent + Evals。
+
+**本周建议拆分：**
+- `Minimum`：做出一个 Orchestrator-Worker 最小样例，并写清“为什么单 Agent 不够”
+- `Stretch`：MCP Server、Code Agent、自定义路由策略
 
 **知识点：**
 
@@ -367,6 +503,7 @@
 - 定位：工具/资源服务的标准化接口（跨框架复用）
 - Server 端：`pip install mcp`，`@server.tool()` 装饰器含完整 JSON Schema
 - Client 端：`from langchain_mcp_adapters.tools import load_mcp_tools`
+- **后端工程补充**：对大多数后端转 Agent 场景，MCP 是“值得理解的接口标准”，但不是前 2 个月必须精通的主题
 
 **重点学习资源：**
 - 🎓 [DeepLearning.AI: Multi AI Agent Systems with crewAI](https://www.deeplearning.ai/short-courses/multi-ai-agent-systems-with-crewai/) — **目的是理解多 Agent 概念抽象，不是学 CrewAI**
@@ -384,12 +521,16 @@
 - 手写 MCP Server（`search_arxiv` + `get_paper_abstract`），用 `mcp dev` 独立测试后集成进 LangGraph
 - Code Agent 沙箱实验：实现"写代码→执行→看报错→修改→重试"循环，测试 3 个任务的平均重试次数和成功率
 - **框架评估练习**：花 2 小时阅读任意一个新框架，用 5 个问题写 300 字评估报告
-- **交付标准：** 并行 ≥ 3x 加速；MCP Server 可独立测试；Code Agent 3/3 任务最终成功；框架评估报告完成
+- **交付标准：** 至少完成 1 个真正有并行价值的多 Agent 样例；如果没有业务必要，允许 MCP / Code Agent 顺延
 
 </details>
 
 <details>
 <summary><strong>Week 10：Agent 评估体系（Evals）</strong></summary>
+
+**本周建议拆分：**
+- `Minimum`：Unit Test + Golden Dataset + 端到端回归评测
+- `Stretch`：LLM-as-Judge 双模型交叉验证 + Langfuse 历史趋势看板
 
 **知识点：**
 - **Evals 三层体系**（每层都要实现）：
@@ -400,6 +541,7 @@
 - **LLM-as-Judge 设计原则**：每分有具体 Rubric；Judge Prompt 中加 CoT（先分析再打分）；多模型交叉验证（GPT-4o + Qwen-Max，差异 > 2 分时人工复核）
 - **Langfuse 接入**（从本周起，之后每个项目都用）：`pip install langfuse`；`@observe` 装饰器自动追踪；`langfuse.score()` 写入评分；Dashboard 查看趋势
 - CI 式评测流水线：每次修改 Prompt 后必须先跑 `python eval_pipeline.py`，输出对比报告后才决定是否保留
+- **后端工程补充**：这一周是整个 roadmap 的硬主线，不是附属主题。没有评测，后面的优化、服务化和项目都会失真
 
 **重点学习资源：**
 - 📚 [Anthropic Engineering: Demystifying Evals for AI Agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) ⭐ 必读
@@ -415,12 +557,18 @@
 - `pip install langfuse pytest deepeval`
 - 为 Week 6 Research Agent 构建三层评测流水线：Unit Test（`test_tools.py`）+ Golden Dataset（20条）+ LLM-as-Judge（Qwen-Max + GPT-4o 交叉验证）+ Langfuse Tracing
 - 做一次 Prompt 改进实验：改 System Prompt → 跑评测 → 输出前后对比报告
-- **交付标准：** 一键运行评测；Langfuse Dashboard 有历史趋势；两版 Prompt 的量化对比报告
+- **交付标准：** 一键运行评测是硬要求；没有这套评测，不建议进入项目阶段
 
 </details>
 
 <details>
 <summary><strong>Week 11：多模态 Agent</strong></summary>
+
+**本周建议拆分：**
+- `Minimum`：PDF 解析 + 一个最小多模态问答链路
+- `Stretch`：多模态 RAG、Browser Agent、语音 Agent 按资源条件择优选 1-2 个，不建议一周内全做
+
+> **适用边界：** 如果你的目标岗位更偏通用 Agent 平台、企业知识库、工作流编排，而不是文档智能 / GUI 自动化，这一周可以整体降为选修，把时间挪给 Week 10 和 Week 12。
 
 **知识点：**
 - **VLM 核心概念**：图文 Token 化（patches → token embeddings）；传入图片格式（base64 或文件路径）；VLM 能力边界（OCR/图表解读/GUI 元素定位/空间关系）
@@ -451,6 +599,7 @@
 - **PDF 解析**：实现 `parse_pdf(path) -> list[{page_num, type, content}]`；人工验证 5 页识别率 ≥ 95%
 - **多模态 RAG**：Qdrant 混合索引（文字用 bge-large-zh，图片用 CLIP）→ Ollama 本地 `qwen2.5-vl:7b` → 测试 5 个图表问题
 - **Web Agent**：`browser-use` 实现 arxiv 搜索任务（自动搜索 → 找到第一篇 → 提取标题摘要 → 返回 JSON）
+- 机器资源不足时：优先用 API 跑 VLM；Browser Agent 可降级为“截图理解 + Playwright 固定流程”
 - **交付标准：** PDF 解析识别率 ≥ 95%；多模态 RAG 5/5 图表问题正确；Web Agent 任务成功（3 次尝试）
 
 </details>
@@ -458,12 +607,24 @@
 <details>
 <summary><strong>Week 12：LLMOps + 服务化部署 + 微调</strong></summary>
 
+**本周建议拆分：**
+- `Minimum`：FastAPI 服务化 + Docker Compose + Langfuse + 基础安全治理
+- `Stretch`：vLLM、K8s、LoRA 三选一做深，不建议第一次就一周内全部做满
+
+> **后端优先级提醒：** 对后端工程师转 Agent 而言，`鉴权 / 限流 / 队列 / 幂等 / 监控` 的优先级高于 `LoRA / DPO / GRPO`。
+
 **知识点：**
 - **FastAPI 流式服务化**：`StreamingResponse` + SSE（`yield f"data: {token}\n\n"`）；`async def` + `asyncio.gather()` 并发工具调用；`/health` + `/metrics`；`asyncio.wait_for(timeout=60)` 超时控制
 - **Docker 容器化**：多阶段 Dockerfile（builder → runner，镜像体积减小 50%+）；`docker-compose.yml`（FastAPI + Redis + Qdrant + Langfuse）；`.env` 文件管理密钥
 - **Kubernetes 基础**（理解概念，不要求深度运维）：`Deployment`/`Service`/`Ingress`/`ConfigMap`（Prompt 热更新）/`CronJob`（定时触发）/`HPA`（自动扩缩容）；`helm create agent-chart` 打包
 - **vLLM 私有化部署**：`docker run --gpus all vllm/vllm-openai:latest --model Qwen/Qwen2.5-7B-Instruct`；OpenAI 兼容接口（只改 `base_url`）；`--quantization awq`（显存减少 50%）；`locust` 压测
 - **LLMOps**：Langfuse Docker Compose 私有化部署；成本监控（`project_cost_limit`）
+- **生产接口治理**（这部分在真实项目里非常常见，建议至少做最小版）：
+  - 鉴权：API Key / JWT 二选一
+  - 限流：按用户 / IP 做 rate limit
+  - 后台任务：长耗时任务放入队列，不阻塞请求线程
+  - 幂等：重复请求不重复扣费、不重复执行副作用工具
+  - 配置分环境：dev / staging / prod 独立配置和 secrets
 - **Agent 安全完整体系**（4 个层面）：
   - **Prompt Injection 防护**：直接注入（正则过滤）+ 间接注入（tool 结果过一层 sanitizer LLM）
   - **越狱攻击识别**：角色扮演绕过/编码绕过/分步绕过；输出层 Llama Guard 或 `detoxify` 分类器
@@ -475,6 +636,7 @@
   - DPO：`{"prompt", "chosen", "rejected"}` 格式；`DPOTrainer`
   - GRPO 原理（了解）：DeepSeek-R1 用可验证奖励信号（代码执行结果/答案正确性）做强化学习，无需人工标注
   - **微调 vs RAG vs Prompt Engineering 决策树**：行为可描述 → Prompt Engineering；需外部知识 → RAG；需固定格式/风格 → 微调
+- **后端工程补充**：如果你的目标是尽快拿下 Agent 开发岗，微调理解到“会判断是否该用”通常就够了，不必在 16 周内深挖训练体系
 
 **重点学习资源：**
 - 📚 [FastAPI 文档: Async](https://fastapi.tiangolo.com/async/)
@@ -493,7 +655,8 @@
 - vLLM 压测：10 并发 5 分钟，记录 QPS/P99/GPU 显存；AWQ 量化前后对比
 - K8s 实验：`minikube`，写 Deployment + ConfigMap（存 System Prompt）；修改 ConfigMap 后验证热更新生效
 - LoRA 微调：50 条 Tool Use 数据 → `SFTTrainer` 微调 `Qwen2.5-1.5B-Instruct`（Colab T4 可跑）→ 对比 20 条测试集格式正确率
-- **交付标准：** SSE 流式可演示；vLLM 压测报告；K8s 热更新演示；LoRA 微调后正确率提升 ≥ 10%
+- 最小生产化补充：给 `/chat` 增加鉴权、限流和请求日志；若时间有限，优先于 LoRA
+- **交付标准：** 至少完成可用 API 服务 + 鉴权/限流/日志 + Docker 化；vLLM / K8s / LoRA 完成其一即可作为加分项
 
 **Phase 3 阶段检验：** 能解释多 Agent 选型标准；多模态 Agent 能处理图文混合 PDF；Agent 服务能 Docker 部署并接入 Langfuse；能独立完成 LoRA 微调完整闭环。
 
@@ -505,8 +668,14 @@
 
 > 核心目标：综合运用所有能力，构建代码开源、有量化评测基线的真实 Agent 系统。
 
+> **后端视角：** 项目阶段的评价标准不是“功能堆了多少”，而是“系统边界是否清晰、接口是否稳定、评测是否可信、部署是否可复现”。
+
 <details>
 <summary><strong>Week 13–14：项目一 — 多模态智能文档分析 Agent</strong></summary>
+
+**本项目定位：**
+- 适合目标岗位偏文档智能、企业知识库、投研/咨询、报告生成。
+- 如果你的目标岗位更偏通用 Agent 平台或工作流系统，这个项目可以做成“精简副项目”，重点保留 PDF 解析 + RAG + 报告生成主链路。
 
 **目标：** 支持上传 PDF/扫描件/含图表的报告，Agent 自主理解图文内容 → 跨文档检索 → 结合搜索引擎补充最新信息 → 生成结构化分析报告。
 
@@ -551,6 +720,10 @@ upload_docs → parse → chunk_and_index
 <details>
 <summary><strong>Week 15–16：项目二 — 企业多 Agent 自动化工作流</strong></summary>
 
+**本项目定位：**
+- 这是**更贴近后端工程师转 Agent 开发主战场**的项目，默认应作为主项目认真完成。
+- 如果时间只够做 1 个重项目，优先把这个项目做完整，再把项目一做成精简版本。
+
 **目标：** 构建多 Agent 编排的自动化系统。示例场景：竞品监控与分析工作流（可替换为任何业务场景）——数据采集 → 分析 → 报告生成 → 通知推送，定时触发，支持人工干预。
 
 **为什么多 Agent 是合理的（量化论证，写进架构文档）：**
@@ -582,6 +755,23 @@ upload_docs → parse → chunk_and_index
 6. 代码开源 GitHub，README 含完整部署指南
 
 </details>
+
+---
+
+## 建议新增但不要一开始全学的工程内容
+
+> 下面这些内容在真实 Agent 项目里经常比“前沿框架名词”更重要。建议在 Phase 3-4 按需加入，但不要在前 4 周全部摊开。
+
+| 模块 | 为什么重要 | 建议插入位置 |
+|------|-----------|-------------|
+| 鉴权 / RBAC | Agent 往往会调工具和读数据，没有权限边界很危险 | Week 12 / 项目阶段 |
+| Rate Limit / 配额 | 控成本、防刷、防雪崩 | Week 12 |
+| 队列与异步任务 | OCR、检索、报告生成通常超过同步请求时长 | Week 12 / 项目阶段 |
+| 幂等与重试 | Agent 天生容易多次调用工具，副作用控制很关键 | Week 9 / 12 |
+| Prompt / Dataset 版本管理 | 不做版本化就无法科学比较实验结果 | Week 10 |
+| CI/CD 与回滚 | Prompt、代码、模型配置都需要可回滚 | 项目阶段 |
+| SLO / 告警 | 线上问题首先体现为延迟、错误率、成本飙升 | Week 12 / 项目阶段 |
+| 失败案例复盘机制 | Agent 工程进步主要来自失败样本，不来自“成功 demo” | Week 10 之后持续执行 |
 
 ---
 
@@ -711,6 +901,8 @@ upload_docs → parse → chunk_and_index
 2. **量化一切**：每个实践的"交付标准"是硬性要求，不达标不进入下一周；不接受"跑通了但没有量化"
 3. **先单 Agent 后多 Agent**：不要在 Week 9 前引入多 Agent，单 Agent 做不好多 Agent 一定更差
 4. **不要逐一学框架**：理解框架解决的共性问题，用 5 个评估问题快速上手任何新框架
+5. **先保主线闭环，再做进阶专题**：GraphRAG / DSPy / Browser Agent / LoRA / K8s 都很有价值，但它们不该阻塞主线项目落地
+6. **高风险工具先做最小权限**：代码执行、文件系统、Webhook、浏览器自动化都默认按“不可信输入”处理
 
 ---
 
